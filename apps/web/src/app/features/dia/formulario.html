@@ -1,0 +1,169 @@
+<main class="cd-tela">
+  <header class="cabecalho">
+    <div class="navegacao">
+      <button
+        type="button"
+        class="cd-botao-icone voltar"
+        aria-label="Voltar à lista sem salvar"
+        (click)="voltarParaLista()"
+      >
+        <cd-icone nome="voltar" [tamanho]="22" />
+      </button>
+      <span class="cd-subtitulo">{{ rotuloDia() }}</span>
+    </div>
+    @if (ehNovo()) {
+      <div class="novo-nome">
+        <label for="novo-nome" class="cd-rotulo-secao">Novo comportamento-alvo</label>
+        <input
+          id="novo-nome"
+          class="cd-campo campo-nome"
+          type="text"
+          maxlength="60"
+          placeholder="Como você chama esse comportamento?"
+          [value]="nomeNovo()"
+          [attr.aria-invalid]="!!erroNome()"
+          [attr.aria-describedby]="erroNome() ? 'erro-nome' : 'ajuda-nome'"
+          (input)="nomeNovo.set($any($event.target).value); erroNome.set('')"
+        />
+        @if (erroNome()) {
+          <span id="erro-nome" class="cd-erro-campo">{{ erroNome() }}</span>
+        } @else {
+          <span id="ajuda-nome" class="cd-ajuda">Ele fica salvo e aparece na lista a partir deste dia.</span>
+        }
+      </div>
+    } @else {
+      <div class="titulo">
+        <span class="cd-rotulo-secao">{{
+          comportamento()?.tipo === 'impulso' ? 'Impulsos' : 'Comportamentos-alvo'
+        }}</span>
+        <h1>{{ comportamento()?.nome }}</h1>
+      </div>
+    }
+  </header>
+
+  <div class="cd-conteudo cd-conteudo--com-rodape corpo">
+    <fieldset>
+      <legend class="cd-legenda">Qual foi a intensidade do impulso?</legend>
+      <div class="cd-grade intensidades">
+        @for (o of intensidades; track o.v) {
+          <button
+            type="button"
+            class="cd-opcao intensidade"
+            [attr.aria-pressed]="resposta().intensidade === o.v"
+            [style.--fundo]="o.cor.fundo"
+            [style.--texto]="o.cor.texto"
+            (click)="escolherIntensidade(o.v)"
+          >
+            {{ o.v }}
+          </button>
+        }
+      </div>
+      <div class="extremos" aria-hidden="true"><span>nenhum</span><span>muito intenso</span></div>
+    </fieldset>
+
+    @if (mostrarApoio()) {
+      <cd-apoio-destaque [telefoneTerapeuta]="telefoneTerapeuta()" />
+    }
+    @if (temImpulso()) {
+      <fieldset>
+        <legend class="cd-legenda">Você seguiu o impulso?</legend>
+        <div class="cd-grade duas">
+          <button
+            type="button"
+            class="cd-opcao grande"
+            [attr.aria-pressed]="resposta().seguiu"
+            (click)="escolherSeguiu(true)"
+          >
+            Sim
+          </button>
+          <button
+            type="button"
+            class="cd-opcao grande"
+            [attr.aria-pressed]="!resposta().seguiu"
+            (click)="escolherSeguiu(false)"
+          >
+            Não
+          </button>
+        </div>
+      </fieldset>
+    }
+
+    <fieldset [disabled]="!temImpulso()" [class.apagado]="!temImpulso()">
+      <legend class="cd-legenda">Uso de habilidades</legend>
+      @if (!temImpulso()) {
+        <p class="cd-ajuda dica">Disponível quando o impulso for maior que 0.</p>
+      }
+      <div class="cd-grade duas">
+        @for (e of escalaUso; track e.valor) {
+          <button
+            type="button"
+            class="cd-opcao cartao-opcao"
+            [attr.aria-pressed]="temImpulso() && resposta().usoHabilidade === e.valor"
+            (click)="escolherUso(e.valor)"
+          >
+            {{ e.rotulo }}
+          </button>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset [disabled]="!liberaHabilidades()" [class.apagado]="!liberaHabilidades()">
+      <legend class="cd-legenda">Quais habilidades você usou?</legend>
+      <p class="cd-ajuda dica" aria-live="polite">{{ textoHabilidades() }}</p>
+      <div class="modulos" role="group" aria-label="Módulos de habilidades">
+        @for (m of modulos; track m.id; let i = $index) {
+          <button type="button" class="modulo" [attr.aria-pressed]="modulo() === i" (click)="modulo.set(i)">
+            {{ m.nome }}
+            @if (contagemPorModulo()[i]; as n) {
+              <span class="contagem" [attr.aria-label]="n + (n === 1 ? ' selecionada' : ' selecionadas')">{{ n }}</span>
+            }
+          </button>
+        }
+      </div>
+      <div class="cd-grade duas">
+        @for (h of modulos[modulo()].habilidades; track h.id) {
+          <button
+            type="button"
+            class="habilidade"
+            [attr.aria-pressed]="selecionadas().has(h.id)"
+            (click)="alternarHabilidade(h.id)"
+          >
+            <span class="caixa" aria-hidden="true">
+              @if (selecionadas().has(h.id)) {
+                <cd-icone nome="check" [tamanho]="14" [espessura]="3.5" />
+              }
+            </span>
+            {{ h.nome }}
+          </button>
+        }
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="cd-rodape">
+    <div class="cd-rodape__interno acoes">
+      <button type="button" class="cd-botao" (click)="acaoEsquerda()">
+        {{ temResposta() ? 'Limpar' : 'Cancelar' }}
+      </button>
+      <button
+        type="button"
+        class="cd-botao cd-botao--primario"
+        [disabled]="!podeSalvar() || salvando()"
+        (click)="salvar()"
+      >
+        Salvar
+      </button>
+    </div>
+  </div>
+
+  <cd-dialogo
+    [aberto]="confirmandoLimpeza()"
+    [titulo]="'Limpar ' + (comportamento()?.nome ?? '') + '?'"
+    mensagem="As respostas deste comportamento serão apagadas e ele volta a contar como 0 neste dia."
+    rotuloCancelar="Manter"
+    rotuloConfirmar="Limpar"
+    [perigoso]="true"
+    (cancelar)="confirmandoLimpeza.set(false)"
+    (confirmar)="limpar()"
+  />
+</main>

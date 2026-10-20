@@ -1,0 +1,81 @@
+.saudacao {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h1 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+}
+
+.registro__topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+}
+
+.marcados {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .nome {
+    flex: 1;
+    font-size: 15px;
+  }
+}
+
+.atalho {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--cd-texto);
+
+  &:hover {
+    color: var(--cd-texto);
+    border-color: var(--cd-borda-forte);
+  }
+}
+
+.atalho__icone {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--cd-alerta-fundo);
+  color: var(--cd-alerta-icone);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.atalho__texto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.apoio {
+  margin-top: auto;
+}

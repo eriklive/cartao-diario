@@ -1,0 +1,129 @@
+<main class="cd-tela">
+  <header class="cabecalho">
+    <h1 class="cd-titulo-tela">Fechar a semana</h1>
+    <div class="seletor" role="group" aria-label="Escolher a semana">
+      <button
+        type="button"
+        class="cd-botao-icone"
+        aria-label="Semana anterior"
+        [disabled]="!temAnterior()"
+        (click)="irPara(-1)"
+      >
+        <cd-icone nome="voltar" [tamanho]="18" />
+      </button>
+      <span class="seletor__rotulo" aria-live="polite">{{ periodo() }}{{ ehAtual() ? ' · esta semana' : '' }}</span>
+      <button
+        type="button"
+        class="cd-botao-icone"
+        aria-label="Próxima semana"
+        [disabled]="ehAtual()"
+        (click)="irPara(1)"
+      >
+        <cd-icone nome="avancar" [tamanho]="18" />
+      </button>
+    </div>
+    <div class="linha-sub">
+      <span class="cd-subtitulo">
+        @if (fechadaEm(); as em) {
+          Fechada em {{ formatarData(em) }}. Dá para editar quando quiser.
+        } @else {
+          Preencha antes da sessão.
+        }
+      </span>
+      <a class="cd-botao cd-botao--texto historico" routerLink="/semana/anteriores">
+        <cd-icone nome="historico" [tamanho]="18" />
+        Semanas
+      </a>
+    </div>
+  </header>
+
+  <div class="cd-conteudo cd-conteudo--com-nav">
+    <section class="cd-cartao resumo" aria-labelledby="titulo-resumo">
+      <h2 id="titulo-resumo" class="cd-rotulo-secao">Resumo da semana</h2>
+      <p>{{ resumo() }}</p>
+    </section>
+
+    <section class="cd-cartao">
+      <label for="tarefa" class="cd-rotulo-campo">Tarefa de casa da semana</label>
+      <textarea
+        id="tarefa"
+        class="cd-campo"
+        rows="2"
+        maxlength="2000"
+        placeholder="O que foi combinado na última sessão"
+        [value]="tarefaCasa()"
+        (input)="tarefaCasa.set($any($event.target).value); mudou()"
+      ></textarea>
+      <label for="resultado" class="cd-rotulo-campo">Resultado da tarefa</label>
+      <textarea
+        id="resultado"
+        class="cd-campo"
+        rows="2"
+        maxlength="2000"
+        placeholder="Como foi?"
+        [value]="resultadoTarefa()"
+        (input)="resultadoTarefa.set($any($event.target).value); mudou()"
+      ></textarea>
+    </section>
+
+    <fieldset class="cd-cartao">
+      <legend class="cd-rotulo-campo legenda">Progresso nos objetivos</legend>
+      <div class="cd-grade progresso">
+        @for (p of escalaProgresso; track p.v) {
+          <button
+            type="button"
+            class="cd-opcao"
+            [attr.aria-pressed]="progresso() === p.v"
+            (click)="progresso.set(progresso() === p.v ? null : p.v); mudou()"
+          >
+            {{ p.rotulo }}
+          </button>
+        }
+      </div>
+      <div class="extremos" aria-hidden="true"><span>Piorei</span><span>Igual</span><span>Melhorei</span></div>
+    </fieldset>
+
+    <section class="cd-cartao entradas" aria-labelledby="titulo-entradas">
+      <div>
+        <h2 id="titulo-entradas" class="cd-rotulo-campo">Entradas em sessão</h2>
+        <p class="cd-ajuda">De 0 a 5</p>
+      </div>
+      <ul>
+        @for (e of entradasSessao; track e.id) {
+          <li>
+            <span>{{ e.rotulo }}</span>
+            <cd-contador [rotulo]="e.rotulo" [valor]="valorEntrada(e.id)" (valorChange)="mudarEntrada(e.id, $event)" />
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section class="cd-cartao">
+      <label for="notas" class="cd-rotulo-campo">O que é importante seu terapeuta saber na próxima sessão?</label>
+      <textarea
+        id="notas"
+        class="cd-campo"
+        rows="4"
+        maxlength="4000"
+        [value]="notasTerapeuta()"
+        (input)="notasTerapeuta.set($any($event.target).value); mudou()"
+      ></textarea>
+    </section>
+
+    <div role="status" class="status">
+      @if (salvaAgora()) {
+        <p class="cd-aviso salvo">
+          <cd-icone nome="check" [tamanho]="20" [espessura]="2.5" />
+          Semana salva. Já entra na próxima exportação.
+        </p>
+      } @else if (rascunhoSalvo()) {
+        <p class="cd-ajuda">Rascunho salvo automaticamente.</p>
+      }
+    </div>
+
+    <div class="acoes">
+      <a class="cd-botao" routerLink="/exportar">Exportar</a>
+      <button type="button" class="cd-botao cd-botao--primario" (click)="salvarSemana()">Salvar semana</button>
+    </div>
+  </div>
+</main>

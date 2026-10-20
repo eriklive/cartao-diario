@@ -1,0 +1,156 @@
+<main class="cd-tela">
+  <cd-cabecalho titulo="Meus comportamentos" voltarPara="/ajustes" rotuloVoltar="Voltar aos ajustes">
+    O que aparece na lista do registro do dia.
+  </cd-cabecalho>
+
+  <div class="cd-conteudo cd-conteudo--com-nav">
+    <section class="secao" aria-labelledby="sec-fixos">
+      <h2 id="sec-fixos" class="cd-rotulo-secao">Impulsos do cartão · fixos</h2>
+      <ul class="cd-lista">
+        @for (c of store.impulsos(); track c.id) {
+          <li class="cd-lista__item">
+            <span class="cd-lista__titulo">{{ c.nome }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section class="secao" aria-labelledby="sec-alvos">
+      <h2 id="sec-alvos" class="cd-rotulo-secao">
+        Comportamentos-alvo · {{ store.alvosAtivos().length }} de {{ limite }}
+      </h2>
+      @if (store.alvosAtivos().length) {
+        <ul class="cd-lista">
+          @for (c of store.alvosAtivos(); track c.id) {
+            <li>
+              @if (editando() === c.id) {
+                <form class="edicao" (submit)="salvarNome($event, c)">
+                  <label [for]="'alvo-' + c.id" class="cd-rotulo-campo">Novo nome</label>
+                  <input
+                    class="cd-campo"
+                    type="text"
+                    maxlength="60"
+                    [id]="'alvo-' + c.id"
+                    [value]="textoEdicao()"
+                    (input)="textoEdicao.set($any($event.target).value)"
+                  />
+                  <div class="duas">
+                    <button type="button" class="cd-botao cd-botao--pequeno" (click)="editando.set(null)">
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      class="cd-botao cd-botao--primario cd-botao--pequeno"
+                      [disabled]="!textoEdicao().trim()"
+                    >
+                      Salvar
+                    </button>
+                  </div>
+                  <span class="cd-ajuda">O nome muda também nos registros antigos e nas exportações.</span>
+                </form>
+              } @else {
+                <div class="cd-lista__item">
+                  <span class="cd-lista__texto">
+                    <span class="cd-lista__titulo">{{ c.nome }}</span>
+                    <span class="cd-lista__detalhe">{{ desde(c) }}</span>
+                  </span>
+                  <button
+                    type="button"
+                    class="cd-botao cd-botao--texto acao"
+                    [attr.aria-label]="'Renomear ' + c.nome"
+                    (click)="renomear(c)"
+                  >
+                    Renomear
+                  </button>
+                  <button
+                    type="button"
+                    class="cd-botao cd-botao--texto acao"
+                    [attr.aria-label]="'Arquivar ' + c.nome"
+                    (click)="arquivando.set(c)"
+                  >
+                    Arquivar
+                  </button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+      @if (adicionando()) {
+        <form class="cd-cartao" (submit)="adicionar($event)">
+          <label for="novo-alvo" class="cd-rotulo-campo">Nome do novo comportamento-alvo</label>
+          <input
+            id="novo-alvo"
+            class="cd-campo"
+            type="text"
+            maxlength="60"
+            placeholder="Como você chama esse comportamento?"
+            [value]="textoNovo()"
+            (input)="textoNovo.set($any($event.target).value)"
+          />
+          <div class="duas">
+            <button type="button" class="cd-botao cd-botao--pequeno" (click)="adicionando.set(false)">Cancelar</button>
+            <button
+              type="submit"
+              class="cd-botao cd-botao--primario cd-botao--pequeno"
+              [disabled]="!textoNovo().trim()"
+            >
+              Adicionar
+            </button>
+          </div>
+          <span class="cd-ajuda">Ele aparece no registro do dia a partir de hoje.</span>
+        </form>
+      } @else if (store.podeAdicionarAlvo()) {
+        <button type="button" class="novo" (click)="comecarAdicao()">
+          <cd-icone nome="mais" [tamanho]="20" [espessura]="2.5" />
+          Adicionar comportamento-alvo
+        </button>
+      } @else {
+        <p class="cd-aviso">Você chegou ao limite de 7, como no cartão de papel. Arquive um para abrir espaço.</p>
+      }
+
+      <div role="status" class="status">
+        @if (mensagem()) {
+          <p class="cd-aviso">{{ mensagem() }}</p>
+        }
+      </div>
+    </section>
+
+    @if (store.alvosArquivados().length) {
+      <section class="secao" aria-labelledby="sec-arquivados">
+        <h2 id="sec-arquivados" class="cd-rotulo-secao">Arquivados</h2>
+        <ul class="cd-lista">
+          @for (c of store.alvosArquivados(); track c.id) {
+            <li class="cd-lista__item">
+              <span class="cd-lista__texto"
+                ><span class="cd-lista__detalhe">{{ c.nome }}</span></span
+              >
+              <button
+                type="button"
+                class="cd-botao cd-botao--texto acao"
+                [disabled]="!store.podeAdicionarAlvo()"
+                [attr.aria-label]="'Restaurar ' + c.nome"
+                (click)="restaurar(c)"
+              >
+                Restaurar
+              </button>
+            </li>
+          }
+        </ul>
+        <p class="cd-ajuda">
+          Arquivados não aparecem no registro do dia, mas os registros antigos continuam nas exportações.
+        </p>
+      </section>
+    }
+  </div>
+
+  <cd-dialogo
+    [aberto]="!!arquivando()"
+    [titulo]="'Arquivar ' + (arquivando()?.nome ?? '') + '?'"
+    mensagem="Ele sai do registro do dia. Os registros antigos continuam guardados, e dá para restaurar depois."
+    rotuloCancelar="Manter"
+    rotuloConfirmar="Arquivar"
+    (cancelar)="arquivando.set(null)"
+    (confirmar)="confirmarArquivamento()"
+  />
+</main>

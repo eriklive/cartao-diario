@@ -1,0 +1,69 @@
+name: Publicar no GitHub Pages
+
+# O Pages está configurado como "Deploy from a branch": ele serve o que estiver
+# no branch gh-pages. Este workflow compila o app, roda os testes ponta a ponta
+# contra exatamente o build que vai para o ar (subpasta, sem cabeçalhos próprios,
+# 404.html no lugar do fallback de SPA) e grava o resultado em gh-pages.
+#
+# Variáveis opcionais (Settings › Secrets and variables › Actions › Variables):
+#   PAGES_BASE_HREF  caminho do app; padrão /<nome-do-repo>/. Use / com domínio próprio.
+#   PAGES_CNAME      domínio próprio (ex.: cartao.exemplo.com.br), regravado a cada publicação.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  BASE_HREF: ${{ vars.PAGES_BASE_HREF || format('/{0}/', github.event.repository.name) }}
+
+jobs:
+  publicar:
+    name: Build, testes e publicação
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build para o Pages
+        run: pnpm build:pages
+
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Testes ponta a ponta contra o build que vai ser publicado
+        run: pnpm exec nx e2e web-e2e --exclude-task-dependencies
+        env:
+          E2E_BASE: ${{ env.BASE_HREF }}
+          E2E_PAGES: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-pages
+          path: dist/.playwright/apps/web-e2e/
+          retention-days: 7
+
+      - name: Gravar no branch gh-pages
+        working-directory: dist/apps/web/browser
+        env:
+          CNAME: ${{ vars.PAGES_CNAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          touch .nojekyll
+          if [ -n "$CNAME" ]; then echo "$CNAME" > CNAME; fi
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Publica ${GITHUB_SHA::7}"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

@@ -1,0 +1,80 @@
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coluna {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+.horario {
+  width: auto;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.editar-nome {
+  padding: 8px 16px;
+
+  .cd-campo {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+  }
+}
+
+.duas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .cd-botao {
+    padding: 0 10px;
+    font-size: 15px;
+  }
+}
+
+.restaurar {
+  cursor: pointer;
+
+  &:focus-within {
+    outline: 3px solid var(--cd-primaria);
+    outline-offset: 2px;
+  }
+}
+
+.persistencia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span {
+    flex: 1;
+  }
+}
+
+.icone-apoio {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--cd-alerta-fundo);
+  color: var(--cd-alerta-icone);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.contato {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  .cd-campo {
+    flex: 1;
+    min-width: 0;
+  }
+}

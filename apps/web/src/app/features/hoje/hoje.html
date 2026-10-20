@@ -1,0 +1,76 @@
+<main class="cd-tela">
+  <div class="cd-conteudo cd-conteudo--com-nav">
+    <header class="saudacao">
+      <p class="cd-subtitulo">{{ dataLonga() }}</p>
+      <h1>Olá, {{ store.perfil()?.nome }}</h1>
+    </header>
+
+    @if (apoioEmDestaque()) {
+      <cd-apoio-destaque [telefoneTerapeuta]="store.telefoneTerapeuta()" />
+    }
+
+    <section class="cd-cartao" aria-labelledby="titulo-semana">
+      <h2 id="titulo-semana" class="cd-rotulo-secao">Semana de {{ rotuloSemana() }}</h2>
+      <cd-faixa-semana [dias]="faixa()" />
+      <p class="cd-ajuda">{{ resumoSemana() }}</p>
+    </section>
+
+    <section class="cd-cartao registro" aria-labelledby="titulo-registro">
+      <div class="registro__topo">
+        <h2 id="titulo-registro">Registro de hoje</h2>
+        <span class="cd-ajuda"
+          >{{ marcadosHoje().length }} {{ marcadosHoje().length === 1 ? 'marcado' : 'marcados' }}</span
+        >
+      </div>
+      @if (marcadosHoje().length) {
+        <ul class="marcados">
+          @for (m of marcadosHoje(); track m.id) {
+            <li>
+              <cd-selo-intensidade [valor]="m.intensidade" />
+              <span class="nome">{{ m.nome }}</span>
+              @if (m.detalhe) {
+                <span class="cd-ajuda">{{ m.detalhe }}</span>
+              }
+            </li>
+          }
+        </ul>
+        <p class="cd-ajuda">Os demais contam como 0.</p>
+      } @else if (hojeConcluido()) {
+        <p class="cd-ajuda">Dia concluído sem nada marcado: tudo conta como 0.</p>
+      } @else {
+        <p class="cd-ajuda">Nada marcado ainda. O que ficar desmarcado conta como 0.</p>
+      }
+      <a class="cd-botao cd-botao--primario" [routerLink]="['/dia', hoje()]">
+        {{ marcadosHoje().length || hojeConcluido() ? 'Revisar registro do dia' : 'Abrir registro do dia' }}
+      </a>
+    </section>
+
+    <a class="cd-cartao atalho" routerLink="/semana">
+      <span class="atalho__icone" aria-hidden="true"><cd-icone nome="semana" [tamanho]="22" /></span>
+      <span class="atalho__texto">
+        <span class="cd-lista__titulo">Fechar a semana</span>
+        <span class="cd-ajuda">Tarefa, progresso e anotações</span>
+      </span>
+      <cd-icone nome="avancar" [tamanho]="18" />
+    </a>
+
+    @if (backupPendente(); as mensagem) {
+      <section class="cd-cartao" aria-labelledby="titulo-backup">
+        <h2 id="titulo-backup" class="cd-lista__titulo">Faça um backup</h2>
+        <p class="cd-ajuda">
+          {{ mensagem }} Seus registros ficam só neste celular: se ele for trocado ou perdido, o backup é o que permite
+          recuperar tudo.
+        </p>
+        <button type="button" class="cd-botao" (click)="fazerBackup()">
+          <cd-icone nome="baixar" [tamanho]="20" />
+          Fazer backup agora
+        </button>
+      </section>
+    }
+    @if (mostrarConvite()) {
+      <cd-convite-instalar />
+    }
+
+    <cd-apoio-cvv class="apoio" />
+  </div>
+</main>

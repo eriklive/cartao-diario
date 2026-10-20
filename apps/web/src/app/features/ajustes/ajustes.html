@@ -1,0 +1,187 @@
+<main class="cd-tela">
+  <cd-cabecalho titulo="Ajustes" />
+
+  <div class="cd-conteudo cd-conteudo--com-nav">
+    <section class="secao" aria-labelledby="sec-registro">
+      <h2 id="sec-registro" class="cd-rotulo-secao">Registro</h2>
+      <div class="cd-lista">
+        <a class="cd-lista__item" routerLink="/ajustes/comportamentos">
+          <span class="cd-lista__texto">
+            <span class="cd-lista__titulo">Meus comportamentos</span>
+            <span class="cd-lista__detalhe">{{ resumoComportamentos() }}</span>
+          </span>
+          <cd-icone nome="avancar" [tamanho]="18" />
+        </a>
+        @if (editandoNome()) {
+          <form class="cd-lista__item editar-nome" (submit)="salvarNome($event)">
+            <label for="nome" class="cd-visualmente-oculto">Como quer ser chamado(a)</label>
+            <input
+              id="nome"
+              class="cd-campo"
+              type="text"
+              maxlength="40"
+              [value]="rascunhoNome()"
+              (input)="rascunhoNome.set($any($event.target).value)"
+            />
+            <button type="submit" class="cd-botao cd-botao--primario cd-botao--pequeno">Salvar</button>
+          </form>
+        } @else {
+          <div class="cd-lista__item">
+            <span class="cd-lista__texto">
+              <span class="cd-lista__titulo">Seu nome</span>
+              <span class="cd-lista__detalhe">{{ perfil()?.nome }}</span>
+            </span>
+            <button type="button" class="cd-botao cd-botao--texto" (click)="editarNome()">Alterar</button>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="secao" aria-labelledby="sec-lembrete">
+      <h2 id="sec-lembrete" class="cd-rotulo-secao">Lembrete</h2>
+      <div class="cd-lista">
+        <div class="cd-lista__item">
+          <span class="cd-lista__texto">
+            <span class="cd-lista__titulo">Lembrete diário</span>
+            <span class="cd-lista__detalhe">
+              {{ perfil()?.lembrete?.ativo ? 'Todos os dias às ' + perfil()?.lembrete?.horario : 'Desligado' }}
+            </span>
+          </span>
+          <cd-interruptor
+            rotulo="Lembrete diário"
+            [ligado]="!!perfil()?.lembrete?.ativo"
+            (ligadoChange)="alternarLembrete($event)"
+          />
+        </div>
+        @if (perfil()?.lembrete?.ativo) {
+          <div class="cd-lista__item">
+            <label for="horario" class="cd-lista__texto cd-lista__titulo">Horário</label>
+            <input
+              id="horario"
+              class="cd-campo horario"
+              type="time"
+              [value]="perfil()?.lembrete?.horario"
+              (change)="mudarHorario($any($event.target).value)"
+            />
+          </div>
+          <div class="cd-lista__item coluna">
+            <p class="cd-ajuda">
+              Sem servidor, o app não consegue mandar notificação sozinho. O aviso chega pelo calendário do celular:
+              adicione o evento diário uma vez.
+            </p>
+            <button type="button" class="cd-botao" (click)="adicionarAoCalendario()">
+              <cd-icone nome="semana" [tamanho]="20" />
+              Adicionar ao calendário
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="secao" aria-labelledby="sec-dados">
+      <h2 id="sec-dados" class="cd-rotulo-secao">Seus dados</h2>
+      <div class="cd-cartao">
+        <p class="cd-ajuda">
+          Tudo fica só neste celular. Se trocar de aparelho ou desinstalar o app, os registros se perdem, então faça um
+          backup de vez em quando.
+        </p>
+        <div class="duas">
+          <button type="button" class="cd-botao" (click)="fazerBackup()">
+            <cd-icone nome="baixar" [tamanho]="20" />
+            Fazer backup
+          </button>
+          <label class="cd-botao restaurar">
+            <cd-icone nome="enviar" [tamanho]="20" />
+            Restaurar
+            <input
+              type="file"
+              accept="application/json,.json"
+              class="cd-visualmente-oculto"
+              (change)="escolherBackup($event)"
+            />
+          </label>
+        </div>
+        <span class="cd-ajuda">Último backup: {{ ultimoBackup() }}</span>
+        @switch (armazenamento.persistente()) {
+          @case (true) {
+            <span class="cd-ajuda">O navegador está protegendo estes dados contra limpeza automática.</span>
+          }
+          @case (false) {
+            <div class="persistencia">
+              <span class="cd-ajuda">O navegador pode apagar estes dados se o celular ficar sem espaço.</span>
+              <button type="button" class="cd-botao cd-botao--texto" (click)="pedirPersistencia()">Proteger</button>
+            </div>
+          }
+        }
+      </div>
+    </section>
+
+    @if (!instalacao.instalado() && instalacao.convidar()) {
+      <cd-convite-instalar [dispensavel]="false" />
+    }
+
+    <section class="secao" aria-labelledby="sec-apoio">
+      <h2 id="sec-apoio" class="cd-rotulo-secao">Apoio</h2>
+      <div class="cd-lista">
+        <a class="cd-lista__item" href="tel:188">
+          <span class="icone-apoio" aria-hidden="true"><cd-icone nome="telefone" [tamanho]="20" /></span>
+          <span class="cd-lista__texto">
+            <span class="cd-lista__titulo">CVV · 188</span>
+            <span class="cd-lista__detalhe">24 horas, ligação gratuita</span>
+          </span>
+        </a>
+        <div class="cd-lista__item coluna">
+          <label for="terapeuta" class="cd-lista__titulo">Contato do terapeuta</label>
+          <div class="contato">
+            <input
+              id="terapeuta"
+              class="cd-campo"
+              type="tel"
+              inputmode="tel"
+              autocomplete="off"
+              maxlength="40"
+              placeholder="Telefone do terapeuta"
+              [value]="perfil()?.contatoTerapeuta ?? ''"
+              (change)="salvarContato($any($event.target).value)"
+            />
+            @if (telefone()) {
+              <a class="cd-botao cd-botao--pequeno" [href]="'tel:' + telefone()">Ligar</a>
+            }
+          </div>
+          <span class="cd-ajuda">Aparece junto do CVV quando você registrar um impulso alto de “Me matar”.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao" aria-labelledby="sec-privacidade">
+      <h2 id="sec-privacidade" class="cd-rotulo-secao">Privacidade</h2>
+      <div class="cd-lista">
+        <div class="cd-lista__item">
+          <cd-icone nome="cadeado" [tamanho]="20" />
+          <span class="cd-lista__texto">
+            <span class="cd-lista__titulo">Bloquear com PIN ou digital</span>
+            <span class="cd-lista__detalhe">Em breve</span>
+          </span>
+        </div>
+        <div class="cd-lista__item">
+          <span class="cd-lista__texto">
+            <span class="cd-lista__detalhe">
+              Sem contas, sem anúncios e sem rastreamento. Nada sai deste aparelho, a não ser o que você exporta.
+            </span>
+          </span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <cd-dialogo
+    [aberto]="!!restaurando()"
+    [titulo]="'Restaurar o backup de ' + dataDoBackup(restaurando()) + '?'"
+    mensagem="Isso substitui tudo o que está neste aparelho pelos dados do backup. Não dá para desfazer."
+    rotuloCancelar="Cancelar"
+    rotuloConfirmar="Restaurar"
+    [perigoso]="true"
+    (cancelar)="restaurando.set(null)"
+    (confirmar)="confirmarRestauracao()"
+  />
+</main>
