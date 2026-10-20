@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /** Data de calendário no fuso do usuário, `AAAA-MM-DD`. Nunca `Date`/UTC. */
 export const DataLocalSchema = z

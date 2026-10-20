@@ -80,9 +80,9 @@ describe('regras do formulário', () => {
     expect(resumirResposta({ intensidade: 0, seguiu: false, usoHabilidade: 0, habilidades: [] })).toBe(
       'Impulso 0 · sem impulso',
     );
-    expect(
-      resumirResposta({ intensidade: 3, seguiu: false, usoHabilidade: 5, habilidades: ['a.b', 'c.d'] }),
-    ).toBe('Impulso 3 · não seguiu · 2 habilidades');
+    expect(resumirResposta({ intensidade: 3, seguiu: false, usoHabilidade: 5, habilidades: ['a.b', 'c.d'] })).toBe(
+      'Impulso 3 · não seguiu · 2 habilidades',
+    );
     expect(resumirResposta({ intensidade: 1, seguiu: true, usoHabilidade: 2, habilidades: [] })).toBe(
       'Impulso 1 · seguiu · Pensei, não usei, mas gostaria',
     );
@@ -142,8 +142,20 @@ describe('resumos', () => {
   const ferir = comportamento({ nome: 'Me ferir', tipo: 'impulso', chave: 'me-ferir' });
   const drogas = comportamento({ nome: 'Usar drogas', tipo: 'impulso', chave: 'usar-drogas', ordem: 1 });
   const registros: Registro[] = [
-    registro({ data: '2026-10-12', comportamentoId: ferir.id, intensidade: 2, usoHabilidade: 5, habilidades: ['atencao-plena.mente-sabia'] }),
-    registro({ data: '2026-10-14', comportamentoId: ferir.id, intensidade: 4, usoHabilidade: 4, habilidades: ['atencao-plena.mente-sabia', 'tolerancia.tip'] }),
+    registro({
+      data: '2026-10-12',
+      comportamentoId: ferir.id,
+      intensidade: 2,
+      usoHabilidade: 5,
+      habilidades: ['atencao-plena.mente-sabia'],
+    }),
+    registro({
+      data: '2026-10-14',
+      comportamentoId: ferir.id,
+      intensidade: 4,
+      usoHabilidade: 4,
+      habilidades: ['atencao-plena.mente-sabia', 'tolerancia.tip'],
+    }),
     registro({ data: '2026-10-15', comportamentoId: drogas.id, intensidade: 4 }),
     registro({ data: '2026-10-16', comportamentoId: drogas.id, intensidade: 5, removidoEm: T }),
   ];
@@ -203,7 +215,10 @@ describe('resumos', () => {
 
   it('lista semanas e períodos', () => {
     expect(listarSemanas('2026-09-30', '2026-10-18')).toEqual(['2026-10-12', '2026-10-05', '2026-09-28']);
-    expect(periodoExportacao('semana', '2026-10-18', '2026-09-01')).toEqual({ inicio: '2026-10-12', fim: '2026-10-18' });
+    expect(periodoExportacao('semana', '2026-10-18', '2026-09-01')).toEqual({
+      inicio: '2026-10-12',
+      fim: '2026-10-18',
+    });
     expect(periodoExportacao('quatro-semanas', '2026-10-18', '2026-09-01').inicio).toBe('2026-09-21');
     expect(periodoExportacao('tudo', '2026-10-18', '2026-09-01').inicio).toBe('2026-09-01');
     expect(semanasDoPeriodo({ inicio: '2026-09-30', fim: '2026-10-13' })).toEqual([

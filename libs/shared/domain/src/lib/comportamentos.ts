@@ -42,9 +42,7 @@ export function visiveisNoDia(
   idsComRegistro: ReadonlySet<string> = new Set(),
 ): Comportamento[] {
   return ordenarComportamentos(
-    lista.filter(
-      (c) => !c.removidoEm && (idsComRegistro.has(c.id) || (c.ativoDesde <= data && !c.arquivadoEm)),
-    ),
+    lista.filter((c) => !c.removidoEm && (idsComRegistro.has(c.id) || (c.ativoDesde <= data && !c.arquivadoEm))),
   );
 }
 

@@ -5,7 +5,10 @@ function escaparTexto(texto: string): string {
 }
 
 function carimboUtc(instante: Date): string {
-  return instante.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  return instante
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
 }
 
 /**
@@ -14,12 +17,7 @@ function carimboUtc(instante: Date): string {
  * o evento ao calendário do celular. O horário é "flutuante" (sem fuso),
  * então segue o fuso do aparelho.
  */
-export function gerarIcsLembrete(opcoes: {
-  horario: Horario;
-  inicio: DataLocal;
-  url: string;
-  agora: Date;
-}): string {
+export function gerarIcsLembrete(opcoes: { horario: Horario; inicio: DataLocal; url: string; agora: Date }): string {
   const [h, m] = opcoes.horario.split(':');
   const titulo = 'Preencher o Cartão Diário';
   const linhas = [

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import {
   CHAVES_IMPULSO,
   ENTRADA_SESSAO_MAX,
@@ -60,7 +60,10 @@ export const DiaSchema = VersionadoSchema.extend({
 });
 export type Dia = z.infer<typeof DiaSchema>;
 
-export const EntradasSessaoSchema = z.record(z.enum(IDS_ENTRADAS_SESSAO), z.int().min(0).max(ENTRADA_SESSAO_MAX));
+export const EntradasSessaoSchema = z.partialRecord(
+  z.enum(IDS_ENTRADAS_SESSAO),
+  z.int().min(0).max(ENTRADA_SESSAO_MAX),
+);
 export type EntradasSessao = z.infer<typeof EntradasSessaoSchema>;
 
 /** Fechamento de uma semana (segunda a domingo), preenchido antes da sessão. */

@@ -1,0 +1,47 @@
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.acao {
+  font-size: 14px;
+  padding: 0 6px;
+}
+
+.acao:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: var(--cd-icone-inativo);
+}
+
+.edicao {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.duas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.novo {
+  min-height: 56px;
+  border-radius: var(--cd-raio-g);
+  border: 2px dashed var(--cd-borda-forte);
+  background: transparent;
+  color: var(--cd-primaria);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.status:empty {
+  display: none;
+}

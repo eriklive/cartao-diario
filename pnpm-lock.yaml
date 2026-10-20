@@ -112,7 +112,7 @@ importers:
         specifier: ~0.5.18
         version: 0.5.23
       '@types/node':
-        specifier: ^22.0.0
+        specifier: ^22
         version: 22.20.5
       '@types/pdfmake':
         specifier: ^0.3.3

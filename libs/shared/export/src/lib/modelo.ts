@@ -152,7 +152,9 @@ export function montarExportacao(dados: Dados, opcoes: OpcoesExportacao): Modelo
       };
     });
 
-    const usadasPorDia = dias.map((d) => new Set(registrosSemana.filter((r) => r.data === d).flatMap((r) => r.habilidades)));
+    const usadasPorDia = dias.map(
+      (d) => new Set(registrosSemana.filter((r) => r.data === d).flatMap((r) => r.habilidades)),
+    );
     return {
       semanaInicio,
       semanaFim,
@@ -169,7 +171,11 @@ export function montarExportacao(dados: Dados, opcoes: OpcoesExportacao): Modelo
       habilidadesMaisUsadas: habilidadesMaisUsadas(registrosSemana),
       habilidades: MODULOS_HABILIDADES.map((m) => ({
         modulo: m.nome,
-        habilidades: m.habilidades.map((h) => ({ id: h.id, nome: h.nome, usada: usadasPorDia.map((s) => s.has(h.id)) })),
+        habilidades: m.habilidades.map((h) => ({
+          id: h.id,
+          nome: h.nome,
+          usada: usadasPorDia.map((s) => s.has(h.id)),
+        })),
       })),
       fechamento: fechamentos.get(semanaInicio) ?? null,
     };

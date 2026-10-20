@@ -1,0 +1,148 @@
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cd-legenda {
+  margin-bottom: 0;
+}
+
+.pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilula {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--cd-superficie);
+  color: var(--cd-texto);
+  border: 1px solid var(--cd-borda-forte);
+
+  &[aria-pressed='true'] {
+    background: var(--cd-primaria);
+    border-color: var(--cd-primaria);
+    color: #ffffff;
+  }
+}
+
+.formatos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.formato {
+  background: var(--cd-superficie);
+  border-radius: var(--cd-raio-g);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 2px solid var(--cd-borda);
+  cursor: pointer;
+
+  &:focus-within {
+    outline: 3px solid var(--cd-primaria);
+    outline-offset: 2px;
+  }
+}
+
+.formato--ativo {
+  border-color: var(--cd-primaria);
+}
+
+.formato__topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--cd-primaria);
+  }
+}
+
+.formato__nome {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.formato__descricao {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--cd-texto-suave);
+}
+
+.inclusoes {
+  background: var(--cd-superficie);
+  border: 1px solid var(--cd-borda);
+  border-radius: var(--cd-raio-g);
+}
+
+.inclusao {
+  min-height: 56px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  cursor: pointer;
+
+  & + & {
+    border-top: 1px solid var(--cd-divisor);
+  }
+
+  input {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: var(--cd-primaria);
+  }
+}
+
+.folha__topo {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.folha__icone {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--cd-primaria-suave);
+  color: var(--cd-primaria);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.folha__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  h2 {
+    font-size: 22px;
+  }
+}
+
+.nome-arquivo {
+  overflow-wrap: anywhere;
+}
+
+.centro {
+  text-align: center;
+}

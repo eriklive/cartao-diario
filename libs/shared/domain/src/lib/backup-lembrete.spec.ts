@@ -43,7 +43,12 @@ describe('backup', () => {
     if (!lido.ok) return;
     expect(lido.backup.schemaVersion).toBe(BACKUP_SCHEMA_VERSION);
     expect(lido.backup.dados.perfil?.nome).toBe('Ana');
-    expect(lido.backup.dados.registros[0]).toMatchObject({ intensidade: 0, seguiu: false, usoHabilidade: 0, habilidades: [] });
+    expect(lido.backup.dados.registros[0]).toMatchObject({
+      intensidade: 0,
+      seguiu: false,
+      usoHabilidade: 0,
+      habilidades: [],
+    });
   });
 
   it('recusa arquivos que não são backup', () => {

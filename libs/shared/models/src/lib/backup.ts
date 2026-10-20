@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import { InstanteSchema } from './comum';
 import { ComportamentoSchema, DiaSchema, FechamentoSchema, PerfilSchema, RegistroSchema } from './entidades';
 

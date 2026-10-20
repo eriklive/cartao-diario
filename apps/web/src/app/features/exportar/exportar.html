@@ -1,0 +1,94 @@
+<main class="cd-tela">
+  <cd-cabecalho titulo="Exportar">Para levar à sessão ou guardar.</cd-cabecalho>
+
+  <div class="cd-conteudo cd-conteudo--com-nav">
+    <fieldset class="bloco">
+      <legend class="cd-legenda">Período</legend>
+      <div class="pilulas">
+        @for (p of tiposPeriodo; track p[0]) {
+        <button
+          type="button"
+          class="pilula"
+          [attr.aria-pressed]="tipoPeriodo() === p[0]"
+          (click)="tipoPeriodo.set(p[0])"
+        >
+          {{ p[1] }}
+        </button>
+        }
+      </div>
+      <p class="cd-ajuda" aria-live="polite">{{ infoPeriodo() }}</p>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend class="cd-legenda">Formato</legend>
+      <div class="formatos">
+        @for (f of formatos; track f.id) {
+        <label class="formato" [class.formato--ativo]="formato() === f.id">
+          <span class="formato__topo">
+            <input
+              type="radio"
+              name="formato"
+              [value]="f.id"
+              [checked]="formato() === f.id"
+              (change)="formato.set(f.id)"
+            />
+            <span class="formato__nome">{{ f.rotulo }}</span>
+          </span>
+          <span class="formato__descricao">{{ f.descricao }}</span>
+        </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend class="cd-legenda">Incluir</legend>
+      <div class="inclusoes">
+        @for (i of inclusoes; track i.chave) {
+        <label class="inclusao">
+          <input type="checkbox" [checked]="incluir()[i.chave]" (change)="alternarInclusao(i.chave)" />
+          <span>{{ i.rotulo }}</span>
+        </label>
+        }
+      </div>
+      @if (!algoIncluido()) {
+      <p class="cd-erro-campo">Escolha pelo menos um item.</p>
+      }
+    </fieldset>
+
+    <button
+      type="button"
+      class="cd-botao cd-botao--primario cd-botao--largo"
+      [disabled]="gerando() || !algoIncluido()"
+      (click)="gerar()"
+    >
+      <cd-icone nome="exportar" [tamanho]="20" />
+      {{ gerando() ? 'Gerando…' : formato() === 'pdf' ? 'Gerar PDF' : 'Gerar planilha' }}
+    </button>
+    <p class="cd-ajuda">O arquivo é gerado neste celular. Nada é enviado para a internet.</p>
+  </div>
+
+  <cd-folha [aberta]="!!arquivo()" rotuladoPor="titulo-pronto" (fechar)="arquivo.set(null)">
+    <div class="folha__topo">
+      <span class="folha__icone" aria-hidden="true"><cd-icone nome="arquivo" /></span>
+      <div class="folha__textos">
+        <h2 id="titulo-pronto">Arquivo pronto</h2>
+        <span class="cd-ajuda nome-arquivo">{{ arquivo()?.name }}</span>
+      </div>
+    </div>
+    @if (formato() === 'pdf') {
+    <button type="button" class="cd-botao" (click)="previa()">Ver prévia</button>
+    } @if (podeCompartilhar()) {
+    <button type="button" class="cd-botao cd-botao--primario" (click)="compartilhar()">
+      <cd-icone nome="exportar" [tamanho]="20" />
+      Compartilhar
+    </button>
+    <span class="cd-ajuda centro">Abre o menu do celular: WhatsApp, e-mail ou salvar em Arquivos.</span>
+    } @else {
+    <button type="button" class="cd-botao cd-botao--primario" (click)="baixar()">
+      <cd-icone nome="baixar" [tamanho]="20" />
+      Baixar
+    </button>
+    }
+    <button type="button" class="cd-botao cd-botao--texto" (click)="arquivo.set(null)">Fechar</button>
+  </cd-folha>
+</main>

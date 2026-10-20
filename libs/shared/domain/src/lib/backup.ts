@@ -1,10 +1,4 @@
-import {
-  BACKUP_APP,
-  BACKUP_SCHEMA_VERSION,
-  BackupSchema,
-  type Backup,
-  type Dados,
-} from '@cartao/shared/models';
+import { BACKUP_APP, BACKUP_SCHEMA_VERSION, BackupSchema, type Backup, type Dados } from '@cartao/shared/models';
 import { normalizarResposta } from './registro';
 
 export function criarBackup(dados: Dados, agora: Date): Backup {
@@ -45,7 +39,10 @@ export function lerBackup(conteudo: unknown): LeituraBackup {
     return { ok: false, erro: NAO_E_BACKUP };
   }
   if (versao > BACKUP_SCHEMA_VERSION) {
-    return { ok: false, erro: 'Este backup foi feito por uma versão mais nova do app. Atualize o app e tente de novo.' };
+    return {
+      ok: false,
+      erro: 'Este backup foi feito por uma versão mais nova do app. Atualize o app e tente de novo.',
+    };
   }
   while (versao < BACKUP_SCHEMA_VERSION) {
     const migrar = MIGRACOES[versao];

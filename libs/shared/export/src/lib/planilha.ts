@@ -32,19 +32,30 @@ function abaDiario(modelo: ModeloExportacao): Aba {
   return {
     sheet: 'Diário',
     stickyRowsCount: 1,
-    columns: [{ width: 12 }, { width: 6 }, { width: 8 }, { width: 28 }, { width: 20 }, { width: 14 }, { width: 13 }, { width: 17 }],
+    columns: [
+      { width: 12 },
+      { width: 6 },
+      { width: 8 },
+      { width: 28 },
+      { width: 20 },
+      { width: 14 },
+      { width: 13 },
+      { width: 17 },
+    ],
     data: [
       cabecalho(['Data', 'Dia', 'Semana', 'Item', 'Tipo', 'Impulso (0–5)', 'Seguiu (S/N)', 'Habilidades (0–7)']),
-      ...modelo.linhas.map((l): Row => [
-        data(l.data),
-        l.dia,
-        l.semanaIso,
-        l.item,
-        l.tipo === 'impulso' ? 'Impulso' : 'Comportamento-alvo',
-        l.destaque ? { value: l.intensidade, ...DESTAQUE } : l.intensidade,
-        l.seguiu,
-        l.usoHabilidade,
-      ]),
+      ...modelo.linhas.map(
+        (l): Row => [
+          data(l.data),
+          l.dia,
+          l.semanaIso,
+          l.item,
+          l.tipo === 'impulso' ? 'Impulso' : 'Comportamento-alvo',
+          l.destaque ? { value: l.intensidade, ...DESTAQUE } : l.intensidade,
+          l.seguiu,
+          l.usoHabilidade,
+        ],
+      ),
     ],
   };
 }
@@ -70,7 +81,12 @@ function abaSemanal(modelo: ModeloExportacao): Aba {
   const { fechamento, notas } = modelo.incluir;
   const titulos = ['Semana (início)', 'Fim', 'Dias preenchidos'];
   if (fechamento) {
-    titulos.push('Tarefa de casa', 'Resultado', 'Progresso (−3 a +3)', ...ENTRADAS_SESSAO.map((e) => `${e.rotulo} (0–5)`));
+    titulos.push(
+      'Tarefa de casa',
+      'Resultado',
+      'Progresso (−3 a +3)',
+      ...ENTRADAS_SESSAO.map((e) => `${e.rotulo} (0–5)`),
+    );
   }
   if (notas) titulos.push('Para o terapeuta');
 
@@ -82,7 +98,11 @@ function abaSemanal(modelo: ModeloExportacao): Aba {
       cabecalho(titulos),
       ...modelo.semanas.map((s): Row => {
         const f = s.fechamento;
-        const linha: Row = [data(s.semanaInicio), data(s.semanaFim), `${s.frequencia.preenchidos} de ${s.frequencia.total}`];
+        const linha: Row = [
+          data(s.semanaInicio),
+          data(s.semanaFim),
+          `${s.frequencia.preenchidos} de ${s.frequencia.total}`,
+        ];
         if (fechamento) {
           linha.push(
             { value: f?.tarefaCasa ?? '', wrap: true },

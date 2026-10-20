@@ -1,10 +1,6 @@
 import type { Content, CustomTableLayout, TableCell, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { ENTRADAS_SESSAO, ESCALA_USO_HABILIDADE } from '@cartao/shared/models';
-import {
-  formatarDataNumerica,
-  formatarPeriodoLongo,
-  formatarDiaMes,
-} from '@cartao/shared/domain';
+import { formatarDataNumerica, formatarPeriodoLongo, formatarDiaMes } from '@cartao/shared/domain';
 import type { CartaoSemanal, ModeloExportacao } from './modelo';
 
 /*
@@ -42,7 +38,10 @@ function cabecalho(modelo: ModeloExportacao, semana: CartaoSemanal, subtitulo: s
         width: 'auto',
         table: {
           body: [
-            [{ text: 'Nome', style: 'rotulo' }, { text: modelo.nome || '—', bold: true }],
+            [
+              { text: 'Nome', style: 'rotulo' },
+              { text: modelo.nome || '—', bold: true },
+            ],
             [
               { text: 'Frequência', style: 'rotulo' },
               { text: freq.total ? `${freq.preenchidos} de ${freq.total} dias (calculado)` : '—', bold: true },
@@ -68,7 +67,10 @@ function gradeDaSemana(semana: CartaoSemanal): Content {
 
   const grupos: TableCell[] = [{ text: '', border: [false, false, false, false] }];
   if (nImpulsos) {
-    grupos.push({ text: 'IMPULSOS', colSpan: nImpulsos * 3, style: 'grupo' }, ...Array.from({ length: nImpulsos * 3 - 1 }, vazio));
+    grupos.push(
+      { text: 'IMPULSOS', colSpan: nImpulsos * 3, style: 'grupo' },
+      ...Array.from({ length: nImpulsos * 3 - 1 }, vazio),
+    );
   }
   if (nAlvos) {
     grupos.push(
@@ -79,14 +81,24 @@ function gradeDaSemana(semana: CartaoSemanal): Content {
 
   const nomes: TableCell[] = [
     { text: 'Dia', rowSpan: 2, style: 'cabecalhoTabela', alignment: 'left' },
-    ...semana.colunas.flatMap((c): TableCell[] => [{ text: c.nome, colSpan: 3, style: 'cabecalhoTabela' }, vazio(), vazio()]),
+    ...semana.colunas.flatMap((c): TableCell[] => [
+      { text: c.nome, colSpan: 3, style: 'cabecalhoTabela' },
+      vazio(),
+      vazio(),
+    ]),
   ];
-  const letras: TableCell[] = [vazio(), ...semana.colunas.flatMap((): TableCell[] => ['I', 'A', 'H'].map((t) => ({ text: t, style: 'letra' })))];
+  const letras: TableCell[] = [
+    vazio(),
+    ...semana.colunas.flatMap((): TableCell[] => ['I', 'A', 'H'].map((t) => ({ text: t, style: 'letra' }))),
+  ];
 
   const linhas: TableCell[][] = semana.linhas.map((l) => {
     const fundo = l.preenchido ? undefined : COR.fundo;
     const rotulo: TableCell = {
-      text: [{ text: `${l.dia}\n`, bold: true }, { text: formatarDiaMes(l.data), color: COR.suave, fontSize: 7 }],
+      text: [
+        { text: `${l.dia}\n`, bold: true },
+        { text: formatarDiaMes(l.data), color: COR.suave, fontSize: 7 },
+      ],
       fillColor: fundo,
     };
     const celulas = l.celulas.flatMap((c): TableCell[] => {
@@ -123,7 +135,9 @@ function gradeDaSemana(semana: CartaoSemanal): Content {
 function legendaEHabilidades(semana: CartaoSemanal): Content {
   const metade = Math.ceil(ESCALA_USO_HABILIDADE.length / 2);
   const coluna = (inicio: number) =>
-    ESCALA_USO_HABILIDADE.slice(inicio, inicio + metade).map((e) => `${e.valor} – ${e.curto}`).join('\n');
+    ESCALA_USO_HABILIDADE.slice(inicio, inicio + metade)
+      .map((e) => `${e.valor} – ${e.curto}`)
+      .join('\n');
   const mais = semana.habilidadesMaisUsadas.slice(0, 5);
   return {
     stack: [
@@ -203,14 +217,26 @@ function cartaoDeHabilidades(modelo: ModeloExportacao, semana: CartaoSemanal): C
       headerRows: 1,
       widths: ['*', ...dias.map(() => 22), 26],
       body: [
-        [{ text: 'Habilidade', style: 'cabecalhoTabela', alignment: 'left' }, ...dias.map((d) => ({ text: d, style: 'cabecalhoTabela' })), { text: 'Dias', style: 'cabecalhoTabela' }],
+        [
+          { text: 'Habilidade', style: 'cabecalhoTabela', alignment: 'left' },
+          ...dias.map((d) => ({ text: d, style: 'cabecalhoTabela' })),
+          { text: 'Dias', style: 'cabecalhoTabela' },
+        ],
         ...modulos.flatMap((m): TableCell[][] => [
-          [{ text: m.modulo.toUpperCase(), colSpan: dias.length + 2, style: 'grupo', alignment: 'left' }, ...Array.from({ length: dias.length + 1 }, vazio)],
+          [
+            { text: m.modulo.toUpperCase(), colSpan: dias.length + 2, style: 'grupo', alignment: 'left' },
+            ...Array.from({ length: dias.length + 1 }, vazio),
+          ],
           ...m.habilidades.map((h): TableCell[] => {
             const total = h.usada.filter(Boolean).length;
             return [
               { text: h.nome },
-              ...h.usada.map((u): TableCell => (u ? { text: 'X', alignment: 'center', bold: true, color: COR.primaria, fillColor: COR.primariaSuave } : { text: '' })),
+              ...h.usada.map(
+                (u): TableCell =>
+                  u
+                    ? { text: 'X', alignment: 'center', bold: true, color: COR.primaria, fillColor: COR.primariaSuave }
+                    : { text: '' },
+              ),
               { text: total ? String(total) : '', alignment: 'center', bold: true },
             ];
           }),
@@ -231,7 +257,12 @@ function cartaoDeHabilidades(modelo: ModeloExportacao, semana: CartaoSemanal): C
   const [ap, cm, tol, reg, inter] = semana.habilidades;
   return [
     cabecalho(modelo, semana, 'Cartão de habilidades'),
-    { text: 'Montado a partir das habilidades marcadas em cada impulso.', fontSize: 8, color: COR.suave, margin: [0, -4, 0, 8] },
+    {
+      text: 'Montado a partir das habilidades marcadas em cada impulso.',
+      fontSize: 8,
+      color: COR.suave,
+      margin: [0, -4, 0, 8],
+    },
     { columns: [tabela([ap, cm, inter].filter(Boolean)), tabela([tol, reg].filter(Boolean))], columnGap: 16 },
   ];
 }
@@ -241,7 +272,8 @@ export function criarDocumentoPdf(modelo: ModeloExportacao): TDocumentDefinition
   modelo.semanas.forEach((semana, i) => {
     const conteudo = paginaDaSemana(modelo, semana);
     paginas.push(i === 0 ? conteudo : [{ text: '', pageBreak: 'before' }, ...conteudo]);
-    if (modelo.incluir.registros) paginas.push([{ text: '', pageBreak: 'before' }, ...cartaoDeHabilidades(modelo, semana)]);
+    if (modelo.incluir.registros)
+      paginas.push([{ text: '', pageBreak: 'before' }, ...cartaoDeHabilidades(modelo, semana)]);
   });
 
   return {

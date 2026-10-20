@@ -8,7 +8,15 @@ import { criarPlanilha } from './planilha';
 const T = '2026-10-18T21:00:00.000Z';
 
 function comportamento(p: Partial<Comportamento> & Pick<Comportamento, 'nome'>): Comportamento {
-  return { id: crypto.randomUUID(), tipo: 'alvo', ordem: 0, ativoDesde: '2026-10-06', criadoEm: T, atualizadoEm: T, ...p };
+  return {
+    id: crypto.randomUUID(),
+    tipo: 'alvo',
+    ordem: 0,
+    ativoDesde: '2026-10-06',
+    criadoEm: T,
+    atualizadoEm: T,
+    ...p,
+  };
 }
 
 const matar = comportamento({ nome: 'Me matar', tipo: 'impulso', chave: 'me-matar', ordem: 0 });
@@ -27,7 +35,13 @@ const dados: Dados = {
   dias: [{ data: '2026-10-13', concluidoEm: T, criadoEm: T, atualizadoEm: T }],
   registros: [
     registro({ data: '2026-10-07', comportamentoId: arquivado.id, intensidade: 2 }),
-    registro({ data: '2026-10-12', comportamentoId: ferir.id, intensidade: 3, usoHabilidade: 5, habilidades: ['atencao-plena.mente-sabia', 'tolerancia.tip'] }),
+    registro({
+      data: '2026-10-12',
+      comportamentoId: ferir.id,
+      intensidade: 3,
+      usoHabilidade: 5,
+      habilidades: ['atencao-plena.mente-sabia', 'tolerancia.tip'],
+    }),
     registro({ data: '2026-10-14', comportamentoId: drogas.id, intensidade: 1, seguiu: true }),
   ],
   fechamentos: [
@@ -62,8 +76,19 @@ describe('montarExportacao', () => {
   });
 
   it('inclui o arquivado só na semana em que ele estava ativo', () => {
-    expect(modelo.semanas[0].colunas.map((c) => c.nome)).toEqual(['Me matar', 'Me ferir', 'Usar drogas', 'Gastar demais', 'Brigar']);
-    expect(modelo.semanas[1].colunas.map((c) => c.nome)).toEqual(['Me matar', 'Me ferir', 'Usar drogas', 'Gastar demais']);
+    expect(modelo.semanas[0].colunas.map((c) => c.nome)).toEqual([
+      'Me matar',
+      'Me ferir',
+      'Usar drogas',
+      'Gastar demais',
+      'Brigar',
+    ]);
+    expect(modelo.semanas[1].colunas.map((c) => c.nome)).toEqual([
+      'Me matar',
+      'Me ferir',
+      'Usar drogas',
+      'Gastar demais',
+    ]);
   });
 
   it('preenche zeros nos dias preenchidos e deixa vazio o resto', () => {
@@ -145,7 +170,9 @@ describe('planilha', () => {
     expect(abas.map((a) => a.sheet)).toEqual(['Diário', 'Habilidades', 'Semanal', 'Legenda']);
     const diario = abas[0].data;
     expect(diario).toHaveLength(1 + 17);
-    const celulaDestacada = diario.flat().find((c) => typeof c === 'object' && c && 'backgroundColor' in c && c.value === 3);
+    const celulaDestacada = diario
+      .flat()
+      .find((c) => typeof c === 'object' && c && 'backgroundColor' in c && c.value === 3);
     expect(celulaDestacada).toBeTruthy();
     expect(abas[1].data).toHaveLength(1 + 2);
     expect(abas[2].data[1][2]).toBe('1 de 6');
@@ -153,7 +180,9 @@ describe('planilha', () => {
   });
 
   it('respeita o que foi escolhido em "Incluir"', () => {
-    const abas = criarPlanilha(montarExportacao(dados, { ...opcoes, incluir: { registros: false, fechamento: false, notas: true } }));
+    const abas = criarPlanilha(
+      montarExportacao(dados, { ...opcoes, incluir: { registros: false, fechamento: false, notas: true } }),
+    );
     expect(abas.map((a) => a.sheet)).toEqual(['Semanal', 'Legenda']);
     expect(abas[0].data[0]).toHaveLength(4);
   });

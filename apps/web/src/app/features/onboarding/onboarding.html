@@ -1,0 +1,168 @@
+<main class="cd-tela">
+  <div class="topo">
+    @if (passo() > 0) {
+    <button type="button" class="cd-botao-icone voltar" aria-label="Voltar" (click)="voltar()">
+      <cd-icone nome="voltar" [tamanho]="22" />
+    </button>
+    } @else {
+    <span class="voltar" aria-hidden="true"></span>
+    }
+    <div class="pontos" role="img" [attr.aria-label]="'Passo ' + (passo() + 1) + ' de 3'">
+      @for (p of [0, 1, 2]; track p) {
+      <span class="ponto" [class.ponto--ativo]="p === passo()"></span>
+      }
+    </div>
+    <span class="voltar" aria-hidden="true"></span>
+  </div>
+
+  @switch (passo()) { @case (0) {
+  <section class="passo">
+    <div class="logo" aria-hidden="true"><cd-icone nome="cartao" [tamanho]="34" /></div>
+    <h1>Seu Cartão Diário, no celular</h1>
+    <p class="texto">
+      Registre seus impulsos e as habilidades que usou, um dia de cada vez. Antes da sessão, exporte tudo em PDF ou
+      planilha.
+    </p>
+    <div class="campo">
+      <label for="nome" class="cd-rotulo-campo">Como quer ser chamado(a)?</label>
+      <input
+        id="nome"
+        class="cd-campo"
+        type="text"
+        autocomplete="nickname"
+        maxlength="40"
+        placeholder="Seu nome ou apelido"
+        [value]="nome()"
+        (input)="nome.set($any($event.target).value)"
+        (keydown.enter)="continuar()"
+      />
+    </div>
+    <div class="cd-aviso privacidade">
+      Seus registros ficam só neste celular. Ninguém mais vê, a não ser que você exporte e compartilhe.
+    </div>
+    <label class="restaurar cd-botao cd-botao--texto">
+      Já usa o app em outro aparelho? Restaurar backup
+      <input type="file" accept="application/json,.json" class="cd-visualmente-oculto" (change)="restaurar($event)" />
+    </label>
+  </section>
+  } @case (1) {
+  <section class="passo">
+    <h1>O que você vai acompanhar?</h1>
+    <div class="grupo">
+      <h2 class="cd-rotulo-secao">Impulsos do cartão · já incluídos</h2>
+      <ul class="chips">
+        @for (i of impulsos; track i.chave) {
+        <li class="chip">{{ i.nome }}</li>
+        }
+      </ul>
+    </div>
+    <div class="grupo">
+      <h2 class="cd-rotulo-secao">Comportamentos-alvo · {{ alvos().length }} de {{ limite }}</h2>
+      <p class="texto texto--menor">
+        Os que você e seu terapeuta combinaram acompanhar. Dá para mudar depois em Ajustes.
+      </p>
+      @if (alvos().length) {
+      <ul class="alvos">
+        @for (a of alvos(); track a; let i = $index) {
+        <li class="alvo">
+          <span>{{ a }}</span>
+          <button type="button" class="cd-botao-icone" [attr.aria-label]="'Remover ' + a" (click)="removerAlvo(i)">
+            <cd-icone nome="fechar" [tamanho]="18" />
+          </button>
+        </li>
+        }
+      </ul>
+      } @if (podeAdicionar()) {
+      <form class="novo" (submit)="adicionarAlvo($event)">
+        <label for="novo-alvo" class="cd-visualmente-oculto">Novo comportamento-alvo</label>
+        <input
+          id="novo-alvo"
+          class="cd-campo"
+          type="text"
+          maxlength="60"
+          placeholder="Nome do comportamento"
+          [value]="rascunho()"
+          [attr.aria-invalid]="!!erroAlvo()"
+          [attr.aria-describedby]="erroAlvo() ? 'erro-alvo' : null"
+          (input)="rascunho.set($any($event.target).value); erroAlvo.set('')"
+        />
+        <button type="submit" class="cd-botao cd-botao--primario" [disabled]="!rascunho().trim()">Adicionar</button>
+      </form>
+      @if (erroAlvo()) {
+      <p id="erro-alvo" class="cd-erro-campo">{{ erroAlvo() }}</p>
+      } } @else {
+      <p class="cd-aviso">Você chegou ao limite de 7, como no cartão de papel.</p>
+      }
+    </div>
+  </section>
+  } @case (2) {
+  <section class="passo">
+    <h1>Um lembrete por dia ajuda a não esquecer</h1>
+    <div class="cd-cartao linha">
+      <span class="cd-rotulo-campo">Lembrete diário</span>
+      <cd-interruptor rotulo="Lembrete diário" [(ligado)]="lembreteAtivo" />
+    </div>
+    <fieldset [disabled]="!lembreteAtivo()" [class.apagado]="!lembreteAtivo()">
+      <legend class="cd-rotulo-campo">Horário</legend>
+      <div class="cd-grade horarios">
+        @for (h of horarios; track h.valor) {
+        <button
+          type="button"
+          class="cd-opcao"
+          [attr.aria-pressed]="horario() === h.valor"
+          (click)="horario.set(h.valor)"
+        >
+          {{ h.rotulo }}
+        </button>
+        }
+      </div>
+      <label class="outro">
+        <span>Outro horário</span>
+        <input
+          class="cd-campo"
+          type="time"
+          [value]="horario()"
+          [class.selecionado]="horarioPersonalizado()"
+          (change)="escolherHorario($any($event.target).value)"
+        />
+      </label>
+    </fieldset>
+    @if (lembreteAtivo()) {
+    <div class="cd-cartao">
+      <p class="texto texto--menor">
+        O aviso chega pelo calendário do celular. Adicione o lembrete agora ou depois, em Ajustes.
+      </p>
+      <button type="button" class="cd-botao" (click)="adicionarAoCalendario()">
+        <cd-icone nome="semana" [tamanho]="20" />
+        Adicionar ao calendário
+      </button>
+    </div>
+    }
+    <p class="texto texto--menor">Você pode preencher depois também: o app deixa voltar até 6 dias.</p>
+  </section>
+  } }
+
+  <div class="rodape">
+    @if (passo() < 2) {
+    <button
+      type="button"
+      class="cd-botao cd-botao--primario cd-botao--largo"
+      [disabled]="passo() === 0 && !nomeValido()"
+      (click)="continuar()"
+    >
+      Continuar
+    </button>
+    } @else {
+    <button
+      type="button"
+      class="cd-botao cd-botao--primario cd-botao--largo"
+      [disabled]="salvando()"
+      (click)="comecar()"
+    >
+      Começar
+    </button>
+    } @if (passo() === 1 && !alvos().length) {
+    <button type="button" class="cd-botao cd-botao--texto" (click)="continuar()">Pular por enquanto</button>
+    }
+  </div>
+</main>

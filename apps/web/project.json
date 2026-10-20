@@ -4,16 +4,11 @@
   "projectType": "application",
   "prefix": "cd",
   "sourceRoot": "apps/web/src",
-  "tags": [
-    "scope:web",
-    "type:app"
-  ],
+  "tags": ["scope:web", "type:app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/web",
@@ -27,24 +22,38 @@
           }
         ],
         "styles": [
+          "node_modules/@fontsource/atkinson-hyperlegible/latin-400.css",
+          "node_modules/@fontsource/atkinson-hyperlegible/latin-700.css",
+          "node_modules/@fontsource/instrument-sans/latin-600.css",
+          "node_modules/@fontsource/instrument-sans/latin-700.css",
           "apps/web/src/styles.scss"
-        ]
+        ],
+        "allowedCommonJsDependencies": ["pdfmake/build/pdfmake", "pdfmake/build/vfs_fonts"]
       },
       "configurations": {
         "production": {
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
+              "maximumWarning": "600kb",
               "maximumError": "1mb"
             },
             {
               "type": "anyComponentStyle",
-              "maximumWarning": "4kb",
-              "maximumError": "8kb"
+              "maximumWarning": "6kb",
+              "maximumError": "10kb"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "serviceWorker": "apps/web/ngsw-config.json",
+          "optimization": {
+            "scripts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            },
+            "fonts": true
+          }
         },
         "development": {
           "optimization": false,
