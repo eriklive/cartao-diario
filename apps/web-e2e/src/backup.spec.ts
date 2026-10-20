@@ -3,9 +3,9 @@ import { AGORA, configurar, responder, verificarAcessibilidade } from './apoio';
 
 test('backup feito num aparelho é restaurado em outro', async ({ page, browser }) => {
   await configurar(page, ['Gastar demais'], 'Bia');
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await responder(page, 'Gastar demais', { intensidade: 2, seguiu: true });
-  await page.goto('/ajustes');
+  await page.goto('./ajustes');
   await expect(page.getByText('Último backup: nunca')).toBeVisible();
   await verificarAcessibilidade(page);
 
@@ -21,7 +21,7 @@ test('backup feito num aparelho é restaurado em outro', async ({ page, browser 
   const outro = await browser.newContext({ locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
   const novo = await outro.newPage();
   await novo.clock.setFixedTime(AGORA);
-  await novo.goto('/');
+  await novo.goto('./');
   await novo.locator('input[type=file]').setInputFiles(caminho);
   await expect(novo).toHaveURL(/\/hoje$/);
   await expect(novo.getByRole('heading', { name: 'Olá, Bia' })).toBeVisible();
@@ -31,7 +31,7 @@ test('backup feito num aparelho é restaurado em outro', async ({ page, browser 
 
 test('restaurar em Ajustes pede confirmação e recusa arquivos inválidos', async ({ page }) => {
   await configurar(page);
-  await page.goto('/ajustes');
+  await page.goto('./ajustes');
   await page.locator('input[type=file]').setInputFiles({
     name: 'qualquer.json',
     mimeType: 'application/json',

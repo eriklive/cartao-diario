@@ -54,7 +54,7 @@ test('o formulário segue as regras do cartão e o resumo aparece na lista', asy
 });
 
 test('"Me matar" com intensidade alta mostra o apoio no formulário e em Hoje', async ({ page }) => {
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await page.getByRole('button', { name: 'Marcar Me matar' }).click();
   await page.getByRole('button', { name: '3', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Ligar para o 188' })).toBeHidden();
@@ -67,7 +67,7 @@ test('"Me matar" com intensidade alta mostra o apoio no formulário e em Hoje', 
 });
 
 test('dá para voltar até 6 dias, não para o futuro, e Concluir conta o dia', async ({ page }) => {
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await expect(page.getByRole('button', { name: 'Próximo dia' })).toBeDisabled();
   for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'Dia anterior' }).click();
   await expect(page.getByText('Segunda, 12 out')).toBeVisible();
@@ -75,13 +75,13 @@ test('dá para voltar até 6 dias, não para o futuro, e Concluir conta o dia', 
   await expect(page.getByText('Você está editando um dia anterior.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Dia anterior' })).toBeDisabled();
 
-  await page.goto('/dia/2026-10-11');
+  await page.goto('./dia/2026-10-11');
   await expect(page).toHaveURL(/\/dia\/2026-10-18$/);
-  await page.goto('/dia/2026-10-19');
+  await page.goto('./dia/2026-10-19');
   await expect(page).toHaveURL(/\/dia\/2026-10-18$/);
 
   // Dia sem nada marcado também conta, se a pessoa concluir.
-  await page.goto('/dia/2026-10-17');
+  await page.goto('./dia/2026-10-17');
   await page.getByRole('button', { name: 'Concluir' }).click();
   await expect(page.getByText('Sábado, 17 out registrado.')).toBeVisible();
   await expect(page.getByText('1 de 1 dia preenchido')).toBeVisible();
@@ -89,7 +89,7 @@ test('dá para voltar até 6 dias, não para o futuro, e Concluir conta o dia', 
 });
 
 test('novo comportamento-alvo criado no dia aparece a partir daquele dia', async ({ page }) => {
-  await page.goto('/dia/2026-10-17');
+  await page.goto('./dia/2026-10-17');
   await page.getByRole('link', { name: 'Novo comportamento-alvo' }).click();
   await expect(page.getByRole('button', { name: 'Salvar', exact: true })).toBeDisabled();
   await page.getByLabel('Novo comportamento-alvo').fill('Gastar demais');
@@ -109,9 +109,9 @@ test('novo comportamento-alvo criado no dia aparece a partir daquele dia', async
 });
 
 test('Hoje resume o dia e a semana', async ({ page }) => {
-  await page.goto('/dia/2026-10-16');
+  await page.goto('./dia/2026-10-16');
   await responder(page, 'Usar drogas', { intensidade: 2, seguiu: true });
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await responder(page, 'Me ferir', {
     intensidade: 3,
     uso: 'Tentei, usei, ajudaram',

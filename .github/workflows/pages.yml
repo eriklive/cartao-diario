@@ -1,0 +1,71 @@
+name: Publicar no GitHub Pages
+
+# Publica a cada push em master (ou manualmente). Antes de publicar, roda os
+# testes ponta a ponta contra exatamente o build que vai para o ar: app na
+# subpasta do Pages, sem cabeçalhos próprios e com 404.html no lugar do
+# fallback de SPA.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build e testes no modo Pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # base_path é "/cartao-diario" em eriklive.github.io/cartao-diario/ e
+      # vazio com domínio próprio.
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build para o Pages
+        run: pnpm build:pages
+        env:
+          BASE_HREF: ${{ steps.pages.outputs.base_path }}/
+
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Testes ponta a ponta contra o build que vai ser publicado
+        run: pnpm exec nx e2e web-e2e --exclude-task-dependencies
+        env:
+          E2E_BASE: ${{ steps.pages.outputs.base_path }}/
+          E2E_PAGES: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-pages
+          path: dist/.playwright/apps/web-e2e/
+          retention-days: 7
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/apps/web/browser
+
+  deploy:
+    name: Publicar
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -16,7 +16,8 @@ export class LembreteCalendario {
     const ics = gerarIcsLembrete({
       horario,
       inicio: this.relogio.hoje(),
-      url: new URL('/hoje', this.documento.baseURI).href,
+      // Relativo ao <base href>: funciona na raiz e em subpasta (GitHub Pages).
+      url: new URL('hoje', this.documento.baseURI).href,
       agora: this.relogio.agora(),
     });
     const arquivo = new File([ics], 'lembrete-cartao-diario.ics', { type: 'text/calendar;charset=utf-8' });

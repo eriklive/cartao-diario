@@ -15,7 +15,9 @@ test('depois da primeira visita o app abre e exporta sem internet', async ({ pag
     .poll(
       () =>
         page.evaluate(async () => {
-          const manifesto = await (await fetch(`/ngsw.json?ngsw-cache-bust=${Math.random()}`)).json();
+          const manifesto = await (
+            await fetch(new URL(`ngsw.json?ngsw-cache-bust=${Math.random()}`, document.baseURI))
+          ).json();
           const urls: string[] = manifesto.assetGroups.find((g: { name: string }) => g.name === 'app').urls;
           const nome = (await caches.keys()).find((n) => n.endsWith(':assets:app:cache'));
           if (!nome) return false;

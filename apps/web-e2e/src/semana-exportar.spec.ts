@@ -4,13 +4,13 @@ import { configurar, responder, verificarAcessibilidade } from './apoio';
 
 async function preencherSemana(page: Page) {
   await configurar(page, ['Gastar demais']);
-  await page.goto('/dia/2026-10-14');
+  await page.goto('./dia/2026-10-14');
   await responder(page, 'Me ferir', {
     intensidade: 4,
     uso: 'Usei automaticamente, ajudou',
     habilidades: [['Atenção Plena', 'Mente Sábia']],
   });
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await responder(page, 'Gastar demais', { intensidade: 1, seguiu: true });
 }
 
@@ -44,7 +44,7 @@ test('fechamento semanal salva sozinho e depois fecha a semana', async ({ page }
 
 test('exporta PDF e planilha gerados no aparelho', async ({ page }) => {
   await preencherSemana(page);
-  await page.goto('/exportar');
+  await page.goto('./exportar');
   await expect(page.getByText('12 a 18 out · 2 dias registrados')).toBeVisible();
   await verificarAcessibilidade(page);
 
@@ -75,7 +75,7 @@ test('exporta PDF e planilha gerados no aparelho', async ({ page }) => {
 
 test('sem nada em "Incluir" não dá para gerar', async ({ page }) => {
   await configurar(page);
-  await page.goto('/exportar');
+  await page.goto('./exportar');
   for (const nome of [
     'Impulsos, comportamentos-alvo e habilidades usadas',
     'Fechamento semanal',

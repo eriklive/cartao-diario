@@ -4,7 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 /** Domingo, 18 de outubro de 2026, 21h em São Paulo. */
 export const AGORA = new Date('2026-10-18T21:00:00-03:00');
 
-export async function abrirNoDia(pagina: Page, caminho = '/', agora = AGORA): Promise<void> {
+export async function abrirNoDia(pagina: Page, caminho = './', agora = AGORA): Promise<void> {
   await pagina.clock.setFixedTime(agora);
   await pagina.goto(caminho);
 }

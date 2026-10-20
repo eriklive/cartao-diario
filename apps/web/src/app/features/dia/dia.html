@@ -29,62 +29,64 @@
     <h1>{{ titulo() }}</h1>
     <p class="cd-subtitulo">Marque o que aconteceu e responda os detalhes. O que ficar desmarcado conta como 0.</p>
     @if (ehPassado()) {
-    <p class="cd-aviso cd-aviso--alerta passado">Você está editando um dia anterior. Dá para voltar até 6 dias.</p>
+      <p class="cd-aviso cd-aviso--alerta passado">Você está editando um dia anterior. Dá para voltar até 6 dias.</p>
     }
   </header>
 
   <div class="cd-conteudo cd-conteudo--com-rodape lista">
     @for (g of grupos(); track g.titulo) {
-    <section class="grupo" [attr.aria-labelledby]="'grupo-' + $index">
-      <div class="grupo__topo">
-        <h2 class="cd-rotulo-secao" [id]="'grupo-' + $index">{{ g.titulo }}</h2>
-        @if (g.alvos) {
-        <a class="cd-botao cd-botao--texto gerenciar" routerLink="/ajustes/comportamentos">Gerenciar</a>
-        }
-      </div>
-      <ul>
-        @for (l of g.linhas; track l.comportamento.id) {
-        <li class="linha" [class.linha--marcada]="l.marcado">
-          <button
-            type="button"
-            class="marca"
-            [attr.aria-pressed]="l.marcado"
-            [attr.aria-label]="(l.marcado ? 'Desmarcar ' : 'Marcar ') + l.comportamento.nome"
-            (click)="alternar(l)"
-          >
-            <span class="marca__circulo">
-              @if (l.marcado) {
-              <cd-icone nome="check" [tamanho]="16" [espessura]="3" />
-              }
-            </span>
-          </button>
-          <button type="button" class="textos" (click)="abrir(l.comportamento)">
-            <span class="nome">{{ l.comportamento.nome }}</span>
-            <span class="resumo">{{ l.resumo }}</span>
-          </button>
-          @if (l.marcado) {
-          <button
-            type="button"
-            class="editar"
-            [attr.aria-label]="'Editar resposta de ' + l.comportamento.nome"
-            (click)="abrir(l.comportamento)"
-          >
-            <cd-icone nome="editar" [tamanho]="16" />
-            Editar
-          </button>
+      <section class="grupo" [attr.aria-labelledby]="'grupo-' + $index">
+        <div class="grupo__topo">
+          <h2 class="cd-rotulo-secao" [id]="'grupo-' + $index">{{ g.titulo }}</h2>
+          @if (g.alvos) {
+            <a class="cd-botao cd-botao--texto gerenciar" routerLink="/ajustes/comportamentos">Gerenciar</a>
           }
-        </li>
-        } @empty { @if (g.alvos) {
-        <li class="cd-ajuda vazio">Nenhum comportamento-alvo ainda.</li>
-        } }
-      </ul>
-      @if (g.alvos && podeAdicionarAlvo()) {
-      <a class="novo" [routerLink]="['/dia', data(), 'novo']">
-        <cd-icone nome="mais" [tamanho]="20" [espessura]="2.5" />
-        Novo comportamento-alvo
-      </a>
-      }
-    </section>
+        </div>
+        <ul>
+          @for (l of g.linhas; track l.comportamento.id) {
+            <li class="linha" [class.linha--marcada]="l.marcado">
+              <button
+                type="button"
+                class="marca"
+                [attr.aria-pressed]="l.marcado"
+                [attr.aria-label]="(l.marcado ? 'Desmarcar ' : 'Marcar ') + l.comportamento.nome"
+                (click)="alternar(l)"
+              >
+                <span class="marca__circulo">
+                  @if (l.marcado) {
+                    <cd-icone nome="check" [tamanho]="16" [espessura]="3" />
+                  }
+                </span>
+              </button>
+              <button type="button" class="textos" (click)="abrir(l.comportamento)">
+                <span class="nome">{{ l.comportamento.nome }}</span>
+                <span class="resumo">{{ l.resumo }}</span>
+              </button>
+              @if (l.marcado) {
+                <button
+                  type="button"
+                  class="editar"
+                  [attr.aria-label]="'Editar resposta de ' + l.comportamento.nome"
+                  (click)="abrir(l.comportamento)"
+                >
+                  <cd-icone nome="editar" [tamanho]="16" />
+                  Editar
+                </button>
+              }
+            </li>
+          } @empty {
+            @if (g.alvos) {
+              <li class="cd-ajuda vazio">Nenhum comportamento-alvo ainda.</li>
+            }
+          }
+        </ul>
+        @if (g.alvos && podeAdicionarAlvo()) {
+          <a class="novo" [routerLink]="['/dia', data(), 'novo']">
+            <cd-icone nome="mais" [tamanho]="20" [espessura]="2.5" />
+            Novo comportamento-alvo
+          </a>
+        }
+      </section>
     }
   </div>
 

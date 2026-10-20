@@ -51,17 +51,49 @@ pnpm preview          # build de produção + servidor com CSP em http://localho
 pnpm test             # testes unitários (libs e app)
 pnpm lint             # lint + checagem de tipos
 pnpm e2e              # Playwright contra o build de produção
+pnpm e2e:pages        # o mesmo, simulando o GitHub Pages (subpasta /cartao-diario/, 404.html)
 ```
 
 Se o Chromium do Playwright estiver em outro caminho, defina `CHROMIUM_PATH` (ex.: `CHROMIUM_PATH=/opt/pw-browsers/chromium pnpm e2e`).
 
-## Publicar
+## Publicar no GitHub Pages
 
-Qualquer hospedagem estática com HTTPS. O service worker exige HTTPS.
+O workflow `.github/workflows/pages.yml` publica a cada push em `master`. Também dá para rodar à mão em Actions › Publicar no GitHub Pages › Run workflow. Antes de publicar, ele roda os testes ponta a ponta contra o build que vai para o ar.
 
-- Build: `pnpm exec nx build web`
-- Pasta publicada: `dist/apps/web/browser`
-- `_headers` (CSP e outros cabeçalhos de segurança) e `_redirects` (fallback de SPA) já vão no build no formato do Cloudflare Pages e do Netlify. Em outra hospedagem, replique os dois.
+Configuração, uma vez só:
+
+1. **Plano:** o GitHub Pages em repositório privado exige GitHub Pro, Team ou Enterprise. No plano gratuito, o repositório precisa ser público. O site publicado é sempre público, mas só contém o app: os registros ficam no aparelho de cada pessoa.
+2. **Ativar:** em Settings › Pages › Build and deployment › Source, escolha **GitHub Actions**.
+3. **Publicar:** faça merge em `master` (ou rode o workflow). O endereço fica em https://eriklive.github.io/cartao-diario/.
+
+Diferenças do Pages tratadas no build (`pnpm build:pages`):
+
+- **Subpasta:** o app fica em `/cartao-diario/`. O `<base href>` vem do workflow e o manifest usa caminhos relativos. Com domínio próprio, a base vira `/` sozinha.
+- **Links diretos:** o Pages não reescreve URLs, então `index.html` é copiado para `404.html`. Um link direto como `/cartao-diario/dia/2026-10-18` abre o app. Depois da primeira visita, quem responde é o service worker.
+- **Cabeçalhos:** o Pages não envia cabeçalhos próprios. A CSP também vai em `<meta>` no `index.html`. Ficam de fora só `frame-ancestors` e `X-Frame-Options`, que só funcionam como cabeçalho.
+
+## Testar num aparelho real
+
+Abra o endereço publicado no celular.
+
+- **Android (Chrome):** use o botão "Instalar" no Início ou o menu ⋮ › Instalar app.
+- **iPhone (Safari):** toque em Compartilhar › Adicionar à Tela de Início. Precisa ser pelo Safari.
+
+Roteiro rápido:
+
+1. **Instalação:** fazer o primeiro acesso com o app já instalado (abrindo pelo ícone) e conferir o ícone e a tela cheia, sem barra do navegador.
+2. **Registro:** registrar hoje e ontem, fechar o app e abrir de novo: os dados continuam lá.
+3. **Offline:** ligar o modo avião e abrir o app. Ele deve abrir, registrar e gerar o PDF.
+4. **Exportação:** em Exportar › Gerar PDF › Compartilhar, conferir que abre o menu do sistema (WhatsApp, e-mail, Arquivos) e ver o PDF.
+5. **Backup:** em Ajustes › Fazer backup, salvar em Arquivos. Depois, em outro aparelho ou navegador, usar "Restaurar backup" nas boas-vindas.
+6. **Lembrete:** em Ajustes › Adicionar ao calendário, conferir se o evento diário entra no calendário.
+7. **Botão voltar (Android):** voltar entre formulário, lista do dia e Hoje.
+
+Para depurar no aparelho, use o Chrome DevTools (`chrome://inspect`, com o Android no cabo USB) ou o Safari no Mac (menu Desenvolvedor, com o iPhone no cabo).
+
+## Outras hospedagens
+
+Qualquer hospedagem estática com HTTPS serve. Publique `dist/apps/web/browser` depois de `pnpm build`. Os arquivos `_headers` (cabeçalhos de segurança) e `_redirects` (fallback de SPA) já saem no formato do Cloudflare Pages e do Netlify; os dois funcionam com repositório privado no plano gratuito.
 
 ## Decisões e limites conhecidos
 

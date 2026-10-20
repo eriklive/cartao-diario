@@ -13,26 +13,26 @@
           <cd-icone nome="avancar" [tamanho]="18" />
         </a>
         @if (editandoNome()) {
-        <form class="cd-lista__item editar-nome" (submit)="salvarNome($event)">
-          <label for="nome" class="cd-visualmente-oculto">Como quer ser chamado(a)</label>
-          <input
-            id="nome"
-            class="cd-campo"
-            type="text"
-            maxlength="40"
-            [value]="rascunhoNome()"
-            (input)="rascunhoNome.set($any($event.target).value)"
-          />
-          <button type="submit" class="cd-botao cd-botao--primario cd-botao--pequeno">Salvar</button>
-        </form>
+          <form class="cd-lista__item editar-nome" (submit)="salvarNome($event)">
+            <label for="nome" class="cd-visualmente-oculto">Como quer ser chamado(a)</label>
+            <input
+              id="nome"
+              class="cd-campo"
+              type="text"
+              maxlength="40"
+              [value]="rascunhoNome()"
+              (input)="rascunhoNome.set($any($event.target).value)"
+            />
+            <button type="submit" class="cd-botao cd-botao--primario cd-botao--pequeno">Salvar</button>
+          </form>
         } @else {
-        <div class="cd-lista__item">
-          <span class="cd-lista__texto">
-            <span class="cd-lista__titulo">Seu nome</span>
-            <span class="cd-lista__detalhe">{{ perfil()?.nome }}</span>
-          </span>
-          <button type="button" class="cd-botao cd-botao--texto" (click)="editarNome()">Alterar</button>
-        </div>
+          <div class="cd-lista__item">
+            <span class="cd-lista__texto">
+              <span class="cd-lista__titulo">Seu nome</span>
+              <span class="cd-lista__detalhe">{{ perfil()?.nome }}</span>
+            </span>
+            <button type="button" class="cd-botao cd-botao--texto" (click)="editarNome()">Alterar</button>
+          </div>
         }
       </div>
     </section>
@@ -54,26 +54,26 @@
           />
         </div>
         @if (perfil()?.lembrete?.ativo) {
-        <div class="cd-lista__item">
-          <label for="horario" class="cd-lista__texto cd-lista__titulo">Horário</label>
-          <input
-            id="horario"
-            class="cd-campo horario"
-            type="time"
-            [value]="perfil()?.lembrete?.horario"
-            (change)="mudarHorario($any($event.target).value)"
-          />
-        </div>
-        <div class="cd-lista__item coluna">
-          <p class="cd-ajuda">
-            Sem servidor, o app não consegue mandar notificação sozinho. O aviso chega pelo calendário do celular:
-            adicione o evento diário uma vez.
-          </p>
-          <button type="button" class="cd-botao" (click)="adicionarAoCalendario()">
-            <cd-icone nome="semana" [tamanho]="20" />
-            Adicionar ao calendário
-          </button>
-        </div>
+          <div class="cd-lista__item">
+            <label for="horario" class="cd-lista__texto cd-lista__titulo">Horário</label>
+            <input
+              id="horario"
+              class="cd-campo horario"
+              type="time"
+              [value]="perfil()?.lembrete?.horario"
+              (change)="mudarHorario($any($event.target).value)"
+            />
+          </div>
+          <div class="cd-lista__item coluna">
+            <p class="cd-ajuda">
+              Sem servidor, o app não consegue mandar notificação sozinho. O aviso chega pelo calendário do celular:
+              adicione o evento diário uma vez.
+            </p>
+            <button type="button" class="cd-botao" (click)="adicionarAoCalendario()">
+              <cd-icone nome="semana" [tamanho]="20" />
+              Adicionar ao calendário
+            </button>
+          </div>
         }
       </div>
     </section>
@@ -102,19 +102,22 @@
           </label>
         </div>
         <span class="cd-ajuda">Último backup: {{ ultimoBackup() }}</span>
-        @switch (armazenamento.persistente()) { @case (true) {
-        <span class="cd-ajuda">O navegador está protegendo estes dados contra limpeza automática.</span>
-        } @case (false) {
-        <div class="persistencia">
-          <span class="cd-ajuda">O navegador pode apagar estes dados se o celular ficar sem espaço.</span>
-          <button type="button" class="cd-botao cd-botao--texto" (click)="pedirPersistencia()">Proteger</button>
-        </div>
-        } }
+        @switch (armazenamento.persistente()) {
+          @case (true) {
+            <span class="cd-ajuda">O navegador está protegendo estes dados contra limpeza automática.</span>
+          }
+          @case (false) {
+            <div class="persistencia">
+              <span class="cd-ajuda">O navegador pode apagar estes dados se o celular ficar sem espaço.</span>
+              <button type="button" class="cd-botao cd-botao--texto" (click)="pedirPersistencia()">Proteger</button>
+            </div>
+          }
+        }
       </div>
     </section>
 
     @if (!instalacao.instalado() && instalacao.convidar()) {
-    <cd-convite-instalar [dispensavel]="false" />
+      <cd-convite-instalar [dispensavel]="false" />
     }
 
     <section class="secao" aria-labelledby="sec-apoio">
@@ -142,7 +145,7 @@
               (change)="salvarContato($any($event.target).value)"
             />
             @if (telefone()) {
-            <a class="cd-botao cd-botao--pequeno" [href]="'tel:' + telefone()">Ligar</a>
+              <a class="cd-botao cd-botao--pequeno" [href]="'tel:' + telefone()">Ligar</a>
             }
           </div>
           <span class="cd-ajuda">Aparece junto do CVV quando você registrar um impulso alto de “Me matar”.</span>

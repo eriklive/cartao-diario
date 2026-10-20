@@ -33,7 +33,7 @@ test('primeiro acesso leva a Hoje e fica guardado no aparelho', async ({ page })
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Olá, Ana' })).toBeVisible();
-  await page.goto('/boas-vindas');
+  await page.goto('./boas-vindas');
   await expect(page).toHaveURL(/\/hoje$/);
 
   await page.getByRole('link', { name: 'Ajustes' }).click();
@@ -42,7 +42,7 @@ test('primeiro acesso leva a Hoje e fica guardado no aparelho', async ({ page })
 });
 
 test('sem primeiro acesso, qualquer tela leva às boas-vindas', async ({ page }) => {
-  await abrirNoDia(page, '/exportar');
+  await abrirNoDia(page, './exportar');
   await expect(page).toHaveURL(/\/boas-vindas$/);
 });
 

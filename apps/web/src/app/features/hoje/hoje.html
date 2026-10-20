@@ -6,7 +6,7 @@
     </header>
 
     @if (apoioEmDestaque()) {
-    <cd-apoio-destaque [telefoneTerapeuta]="store.telefoneTerapeuta()" />
+      <cd-apoio-destaque [telefoneTerapeuta]="store.telefoneTerapeuta()" />
     }
 
     <section class="cd-cartao" aria-labelledby="titulo-semana">
@@ -23,22 +23,22 @@
         >
       </div>
       @if (marcadosHoje().length) {
-      <ul class="marcados">
-        @for (m of marcadosHoje(); track m.id) {
-        <li>
-          <cd-selo-intensidade [valor]="m.intensidade" />
-          <span class="nome">{{ m.nome }}</span>
-          @if (m.detalhe) {
-          <span class="cd-ajuda">{{ m.detalhe }}</span>
+        <ul class="marcados">
+          @for (m of marcadosHoje(); track m.id) {
+            <li>
+              <cd-selo-intensidade [valor]="m.intensidade" />
+              <span class="nome">{{ m.nome }}</span>
+              @if (m.detalhe) {
+                <span class="cd-ajuda">{{ m.detalhe }}</span>
+              }
+            </li>
           }
-        </li>
-        }
-      </ul>
-      <p class="cd-ajuda">Os demais contam como 0.</p>
+        </ul>
+        <p class="cd-ajuda">Os demais contam como 0.</p>
       } @else if (hojeConcluido()) {
-      <p class="cd-ajuda">Dia concluído sem nada marcado: tudo conta como 0.</p>
+        <p class="cd-ajuda">Dia concluído sem nada marcado: tudo conta como 0.</p>
       } @else {
-      <p class="cd-ajuda">Nada marcado ainda. O que ficar desmarcado conta como 0.</p>
+        <p class="cd-ajuda">Nada marcado ainda. O que ficar desmarcado conta como 0.</p>
       }
       <a class="cd-botao cd-botao--primario" [routerLink]="['/dia', hoje()]">
         {{ marcadosHoje().length || hojeConcluido() ? 'Revisar registro do dia' : 'Abrir registro do dia' }}
@@ -55,19 +55,20 @@
     </a>
 
     @if (backupPendente(); as mensagem) {
-    <section class="cd-cartao" aria-labelledby="titulo-backup">
-      <h2 id="titulo-backup" class="cd-lista__titulo">Faça um backup</h2>
-      <p class="cd-ajuda">
-        {{ mensagem }} Seus registros ficam só neste celular: se ele for trocado ou perdido, o backup é o que permite
-        recuperar tudo.
-      </p>
-      <button type="button" class="cd-botao" (click)="fazerBackup()">
-        <cd-icone nome="baixar" [tamanho]="20" />
-        Fazer backup agora
-      </button>
-    </section>
-    } @if (mostrarConvite()) {
-    <cd-convite-instalar />
+      <section class="cd-cartao" aria-labelledby="titulo-backup">
+        <h2 id="titulo-backup" class="cd-lista__titulo">Faça um backup</h2>
+        <p class="cd-ajuda">
+          {{ mensagem }} Seus registros ficam só neste celular: se ele for trocado ou perdido, o backup é o que permite
+          recuperar tudo.
+        </p>
+        <button type="button" class="cd-botao" (click)="fazerBackup()">
+          <cd-icone nome="baixar" [tamanho]="20" />
+          Fazer backup agora
+        </button>
+      </section>
+    }
+    @if (mostrarConvite()) {
+      <cd-convite-instalar />
     }
 
     <cd-apoio-cvv class="apoio" />

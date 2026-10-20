@@ -3,7 +3,7 @@ import { configurar, verificarAcessibilidade } from './apoio';
 
 test('adicionar, renomear, arquivar e restaurar comportamentos-alvo', async ({ page }) => {
   await configurar(page, ['Gastar demais']);
-  await page.goto('/ajustes/comportamentos');
+  await page.goto('./ajustes/comportamentos');
   await expect(page.getByText('Comportamentos-alvo · 1 de 7')).toBeVisible();
   await verificarAcessibilidade(page);
 
@@ -22,7 +22,7 @@ test('adicionar, renomear, arquivar e restaurar comportamentos-alvo', async ({ p
   await expect(page.getByText('“Gastar demais” arquivado.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Arquivados' })).toBeVisible();
 
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await expect(page.getByRole('button', { name: 'Marcar Brigar com a família' })).toBeVisible();
   await expect(page.getByText('Gastar demais')).toBeHidden();
 
@@ -33,10 +33,10 @@ test('adicionar, renomear, arquivar e restaurar comportamentos-alvo', async ({ p
 
 test('limite de 7 comportamentos-alvo ativos', async ({ page }) => {
   await configurar(page, ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7']);
-  await page.goto('/ajustes/comportamentos');
+  await page.goto('./ajustes/comportamentos');
   await expect(page.getByText('Comportamentos-alvo · 7 de 7')).toBeVisible();
   await expect(page.getByText('Você chegou ao limite de 7')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Adicionar comportamento-alvo' })).toBeHidden();
-  await page.goto('/dia/2026-10-18');
+  await page.goto('./dia/2026-10-18');
   await expect(page.getByRole('link', { name: 'Novo comportamento-alvo' })).toBeHidden();
 });

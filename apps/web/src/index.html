@@ -2,6 +2,15 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
+    <!--
+      Política de segurança também em <meta>: hospedagens sem cabeçalhos próprios (GitHub Pages)
+      ficam protegidas igual. Onde dá para mandar cabeçalhos, public/_headers repete a política
+      e acrescenta frame-ancestors, que não funciona em <meta>.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'self' blob:; frame-src 'self' blob:; base-uri 'self'; form-action 'self'"
+    />
     <title>Cartão Diário</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
