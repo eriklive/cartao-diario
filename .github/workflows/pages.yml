@@ -1,9 +1,13 @@
 name: Publicar no GitHub Pages
 
-# Publica a cada push em master (ou manualmente). Antes de publicar, roda os
-# testes ponta a ponta contra exatamente o build que vai para o ar: app na
-# subpasta do Pages, sem cabeçalhos próprios e com 404.html no lugar do
-# fallback de SPA.
+# O Pages está configurado como "Deploy from a branch": ele serve o que estiver
+# no branch gh-pages. Este workflow compila o app, roda os testes ponta a ponta
+# contra exatamente o build que vai para o ar (subpasta, sem cabeçalhos próprios,
+# 404.html no lugar do fallback de SPA) e grava o resultado em gh-pages.
+#
+# Variáveis opcionais (Settings › Secrets and variables › Actions › Variables):
+#   PAGES_BASE_HREF  caminho do app; padrão /<nome-do-repo>/. Use / com domínio próprio.
+#   PAGES_CNAME      domínio próprio (ex.: cartao.exemplo.com.br), regravado a cada publicação.
 
 on:
   push:
@@ -11,17 +15,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  BASE_HREF: ${{ vars.PAGES_BASE_HREF || format('/{0}/', github.event.repository.name) }}
+
 jobs:
-  build:
-    name: Build e testes no modo Pages
+  publicar:
+    name: Build, testes e publicação
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,21 +37,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      # base_path é "/cartao-diario" em eriklive.github.io/cartao-diario/ e
-      # vazio com domínio próprio.
-      - id: pages
-        uses: actions/configure-pages@v5
-
       - name: Build para o Pages
         run: pnpm build:pages
-        env:
-          BASE_HREF: ${{ steps.pages.outputs.base_path }}/
 
       - run: pnpm exec playwright install --with-deps chromium
       - name: Testes ponta a ponta contra o build que vai ser publicado
         run: pnpm exec nx e2e web-e2e --exclude-task-dependencies
         env:
-          E2E_BASE: ${{ steps.pages.outputs.base_path }}/
+          E2E_BASE: ${{ env.BASE_HREF }}
           E2E_PAGES: '1'
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -55,17 +53,17 @@ jobs:
           path: dist/.playwright/apps/web-e2e/
           retention-days: 7
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist/apps/web/browser
-
-  deploy:
-    name: Publicar
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Gravar no branch gh-pages
+        working-directory: dist/apps/web/browser
+        env:
+          CNAME: ${{ vars.PAGES_CNAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          touch .nojekyll
+          if [ -n "$CNAME" ]; then echo "$CNAME" > CNAME; fi
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Publica ${GITHUB_SHA::7}"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

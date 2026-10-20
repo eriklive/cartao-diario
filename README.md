@@ -58,17 +58,18 @@ Se o Chromium do Playwright estiver em outro caminho, defina `CHROMIUM_PATH` (ex
 
 ## Publicar no GitHub Pages
 
-O workflow `.github/workflows/pages.yml` publica a cada push em `master`. Também dá para rodar à mão em Actions › Publicar no GitHub Pages › Run workflow. Antes de publicar, ele roda os testes ponta a ponta contra o build que vai para o ar.
+Endereço: https://eriklive.github.io/cartao-diario/
 
-Configuração, uma vez só:
+O Pages usa **Deploy from a branch**, servindo o branch **`gh-pages`**, pasta **`/ (root)`** (Settings › Pages › Build and deployment). Esse branch guarda só o site compilado, e nada é editado nele à mão.
 
-1. **Plano:** o GitHub Pages em repositório privado exige GitHub Pro, Team ou Enterprise. No plano gratuito, o repositório precisa ser público. O site publicado é sempre público, mas só contém o app: os registros ficam no aparelho de cada pessoa.
-2. **Ativar:** em Settings › Pages › Build and deployment › Source, escolha **GitHub Actions**.
-3. **Publicar:** faça merge em `master` (ou rode o workflow). O endereço fica em https://eriklive.github.io/cartao-diario/.
+O workflow `.github/workflows/pages.yml` atualiza o `gh-pages` a cada push em `master`. Para publicar outro branch, rode à mão em Actions › Publicar no GitHub Pages › Run workflow e escolha o branch. Antes de publicar, ele roda os testes ponta a ponta contra o build que vai para o ar. Se algum falhar, o site continua na versão anterior.
+
+Para publicar da sua máquina sem o workflow, rode `pnpm build:pages` e grave o conteúdo de `dist/apps/web/browser`, com um arquivo `.nojekyll` vazio, no branch `gh-pages`.
 
 Diferenças do Pages tratadas no build (`pnpm build:pages`):
 
-- **Subpasta:** o app fica em `/cartao-diario/`. O `<base href>` vem do workflow e o manifest usa caminhos relativos. Com domínio próprio, a base vira `/` sozinha.
+- **Subpasta:** o app fica em `/cartao-diario/`. O `<base href>` vem do workflow e o manifest usa caminhos relativos. Com domínio próprio, defina as variáveis do repositório `PAGES_BASE_HREF=/` e `PAGES_CNAME=seu.dominio` (Settings › Secrets and variables › Actions › Variables).
+- **Jekyll desligado:** o arquivo `.nojekyll` faz o GitHub servir os arquivos como estão.
 - **Links diretos:** o Pages não reescreve URLs, então `index.html` é copiado para `404.html`. Um link direto como `/cartao-diario/dia/2026-10-18` abre o app. Depois da primeira visita, quem responde é o service worker.
 - **Cabeçalhos:** o Pages não envia cabeçalhos próprios. A CSP também vai em `<meta>` no `index.html`. Ficam de fora só `frame-ancestors` e `X-Frame-Options`, que só funcionam como cabeçalho.
 

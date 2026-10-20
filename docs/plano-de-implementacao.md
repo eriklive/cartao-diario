@@ -9,15 +9,15 @@ Alvo: web app instalável (PWA) em Angular, dados persistidos no aparelho, monor
 
 Decisões tomadas nas questões em aberto (seção 6):
 
-| Questão              | Decisão                                                                                                                                     |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Identidade visual    | A · Névoa, em tokens CSS (`apps/web/src/styles.scss`)                                                                                       |
-| Lembrete sem backend | Evento de calendário diário (`.ics`), aviso em Hoje e badge no ícone                                                                        |
-| Dia preenchido       | "Concluir" ou pelo menos um item respondido; dias antes do primeiro uso não contam como falta                                               |
-| Semana do fechamento | Abre na semana atual, com seletor para voltar; salva sozinho e "Salvar semana" marca como fechada                                           |
-| Telas não desenhadas | Feitas no mesmo estilo: semanas anteriores, convite para instalar, restauração (também no primeiro acesso) e horário do lembrete em Ajustes |
-| PDF com 7 alvos      | Todas as colunas na mesma página (A4 paisagem); o cartão de habilidades vai na página seguinte                                              |
-| Hospedagem           | Ainda não escolhida; o build já leva `_headers` e `_redirects` (Cloudflare Pages/Netlify)                                                   |
+| Questão              | Decisão                                                                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identidade visual    | A · Névoa, em tokens CSS (`apps/web/src/styles.scss`)                                                                                                                          |
+| Lembrete sem backend | Evento de calendário diário (`.ics`), aviso em Hoje e badge no ícone                                                                                                           |
+| Dia preenchido       | "Concluir" ou pelo menos um item respondido; dias antes do primeiro uso não contam como falta                                                                                  |
+| Semana do fechamento | Abre na semana atual, com seletor para voltar; salva sozinho e "Salvar semana" marca como fechada                                                                              |
+| Telas não desenhadas | Feitas no mesmo estilo: semanas anteriores, convite para instalar, restauração (também no primeiro acesso) e horário do lembrete em Ajustes                                    |
+| PDF com 7 alvos      | Todas as colunas na mesma página (A4 paisagem); o cartão de habilidades vai na página seguinte                                                                                 |
+| Hospedagem           | GitHub Pages (repositório público), servindo o branch `gh-pages` que o workflow `pages.yml` atualiza; `_headers`/`_redirects` continuam no build para Cloudflare Pages/Netlify |
 
 O que mudou em relação ao plano:
 
