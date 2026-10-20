@@ -1,0 +1,1 @@
+import{V as im,X as tt,z as et}from"./main-Y57GHVD6.js";function s(t,r){let e=tt(et(new Date(t)),r);return e<=0?`hoje`:e===1?`ontem`:`h\xE1 ${e} dias`}function m(t,r){return tt(et(new Date(t)),r)}function c(t){return im(et(new Date(t)))}export{m as n,s as r,c as t};
