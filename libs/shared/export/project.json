@@ -1,0 +1,9 @@
+{
+  "name": "shared-export",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/export/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:export"],
+  "// targets": "to see all targets run: nx show project shared-export --web",
+  "targets": {}
+}
