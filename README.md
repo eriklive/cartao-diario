@@ -77,10 +77,10 @@ Diferenças do Pages tratadas no build (`pnpm build:pages`):
 
 Abra o endereço publicado no celular.
 
-O card **Adicione à tela de início** aparece no primeiro acesso, no topo de Hoje e em Ajustes enquanto o app estiver aberto no navegador. Ele mostra o caminho certo para cada aparelho:
+No primeiro acesso pelo navegador, antes de qualquer pergunta, uma tela ilustrada convida a **levar o Cartão Diário para a tela de início**. Depois disso, o card **Adicione à tela de início** fica no topo de Hoje e em Ajustes enquanto o app estiver aberto no navegador. Os dois mostram o caminho certo para cada aparelho:
 
 - **Android (Chrome):** botão "Adicionar à tela de início", quando o Chrome libera; antes disso, o caminho pelo menu ⋮ › Instalar app.
-- **iPhone:** Compartilhar › Adicionar à Tela de Início. Instale antes do primeiro acesso: no iPhone, o app da tela de início guarda os registros separado do navegador.
+- **iPhone:** Compartilhar › Adicionar à Tela de Início. A tela do primeiro acesso avisa que, no iPhone, o app da tela de início guarda os registros separado do navegador. Por isso, vale instalar antes de começar.
 
 Em Hoje, "Agora não" esconde o card por 30 dias.
 

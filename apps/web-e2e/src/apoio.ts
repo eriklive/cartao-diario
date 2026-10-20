@@ -9,10 +9,20 @@ export async function abrirNoDia(pagina: Page, caminho = './', agora = AGORA): P
   await pagina.goto(caminho);
 }
 
+/** No navegador, o primeiro acesso começa pela splash de instalação: segue no navegador. */
+export async function passarSplash(pagina: Page): Promise<void> {
+  const seguir = pagina.getByRole('button', { name: 'Continuar no navegador' });
+  const nome = pagina.getByLabel('Como quer ser chamado(a)?');
+  await expect(seguir.or(nome)).toBeVisible();
+  if (await seguir.isVisible()) await seguir.click();
+  await expect(nome).toBeVisible();
+}
+
 /** Faz o primeiro acesso completo e para em Hoje. */
 export async function configurar(pagina: Page, alvos: string[] = [], nome = 'Ana'): Promise<void> {
   await abrirNoDia(pagina);
   await pagina.waitForURL('**/boas-vindas');
+  await passarSplash(pagina);
   await pagina.getByLabel('Como quer ser chamado(a)?').fill(nome);
   await pagina.getByRole('button', { name: 'Continuar' }).click();
   for (const alvo of alvos) {

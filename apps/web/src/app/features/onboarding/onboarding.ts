@@ -7,16 +7,16 @@ import { Backups } from '../../core/plataforma/backups';
 import { Instalacao } from '../../core/plataforma/instalacao';
 import { LembreteCalendario } from '../../core/plataforma/lembrete-calendario';
 import { Avisos } from '../../ui/avisos';
-import { ConviteInstalar } from '../../ui/convite-instalar';
 import { Icone } from '../../ui/icone';
 import { Interruptor } from '../../ui/interruptor';
+import { SplashInstalar } from './splash-instalar';
 
 const HORARIOS: Horario[] = ['20:00', '21:00', '22:00', '23:00'];
 
 @Component({
   selector: 'cd-onboarding',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ConviteInstalar, Icone, Interruptor],
+  imports: [Icone, Interruptor, SplashInstalar],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.scss',
 })
@@ -27,7 +27,7 @@ export class OnboardingPagina {
   private readonly armazenamento = inject(Armazenamento);
   private readonly backups = inject(Backups);
   private readonly calendario = inject(LembreteCalendario);
-  protected readonly instalacao = inject(Instalacao);
+  private readonly instalacao = inject(Instalacao);
 
   protected readonly impulsos = IMPULSOS_FIXOS;
   protected readonly limite = LIMITE_ALVOS;
@@ -41,6 +41,8 @@ export class OnboardingPagina {
   protected readonly lembreteAtivo = signal(true);
   protected readonly horario = signal<Horario>('21:00');
   protected readonly salvando = signal(false);
+  /** No navegador (app não instalado), o primeiro acesso começa convidando a instalar. */
+  protected readonly mostrarSplash = signal(this.instalacao.convidar());
 
   protected readonly nomeValido = computed(() => PerfilSchema.shape.nome.safeParse(this.nome()).success);
   protected readonly podeAdicionar = computed(() => this.alvos().length < LIMITE_ALVOS);

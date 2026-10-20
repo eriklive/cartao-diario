@@ -1,9 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { abrirNoDia, configurar, verificarAcessibilidade } from './apoio';
+import { abrirNoDia, configurar, passarSplash, verificarAcessibilidade } from './apoio';
 
 test('primeiro acesso leva a Hoje e fica guardado no aparelho', async ({ page }) => {
   await abrirNoDia(page);
   await expect(page).toHaveURL(/\/boas-vindas$/);
+  await expect(page.getByRole('heading', { name: 'Leve o Cartão Diário para a tela de início' })).toBeVisible();
+  await verificarAcessibilidade(page);
+  await passarSplash(page);
   await verificarAcessibilidade(page);
 
   const continuar = page.getByRole('button', { name: 'Continuar' });

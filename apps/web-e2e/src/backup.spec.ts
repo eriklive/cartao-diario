@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { AGORA, configurar, responder, verificarAcessibilidade } from './apoio';
+import { AGORA, configurar, passarSplash, responder, verificarAcessibilidade } from './apoio';
 
 test('backup feito num aparelho é restaurado em outro', async ({ page, browser }) => {
   await configurar(page, ['Gastar demais'], 'Bia');
@@ -22,6 +22,7 @@ test('backup feito num aparelho é restaurado em outro', async ({ page, browser 
   const novo = await outro.newPage();
   await novo.clock.setFixedTime(AGORA);
   await novo.goto('./');
+  await passarSplash(novo);
   await novo.locator('input[type=file]').setInputFiles(caminho);
   await expect(novo).toHaveURL(/\/hoje$/);
   await expect(novo.getByRole('heading', { name: 'Olá, Bia' })).toBeVisible();
