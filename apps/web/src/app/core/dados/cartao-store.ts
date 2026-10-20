@@ -309,11 +309,7 @@ export class CartaoStore {
     this._dados.set(backup.dados);
   }
 
-  /**
-   * Grava e já reflete no estado em memória. O `liveQuery` também emite,
-   * mas um pouco depois; sem isso, uma navegação logo após salvar (ex.: a
-   * guarda do primeiro acesso) leria o estado antigo.
-   */
+  /** Grava e, depois do commit, aplica a mesma mudança no estado em memória. */
   private async salvar(mudancas: Mudancas): Promise<void> {
     await this.repo.salvar(mudancas);
     this._dados.update((d) => (d ? mesclar(d, mudancas) : d));

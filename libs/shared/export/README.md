@@ -1,7 +1,5 @@
 # shared-export
 
-This library was generated with [Nx](https://nx.dev).
+Monta o modelo da exportação (cartão semanal, cartão de habilidades, linhas da planilha) e as definições do PDF (pdfmake) e do XLSX (write-excel-file). Só define: quem renderiza é o app (navegador) ou, no futuro, o servidor.
 
-## Running unit tests
-
-Run `nx test shared-export` to execute the unit tests via [Vitest](https://vitest.dev/).
+`nx test shared-export` · `nx typecheck shared-export`

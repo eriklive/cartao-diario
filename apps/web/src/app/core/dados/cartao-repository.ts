@@ -22,7 +22,11 @@ export interface Mudancas {
  * outra implementação (local + sincronização) entra no lugar e as telas não mudam.
  */
 export abstract class CartaoRepository {
-  /** Emite tudo de novo a cada mudança (o volume é pequeno: anos cabem em memória). */
+  /**
+   * Emite tudo ao assinar e de novo quando outra aba ou janela do app muda
+   * os dados (o volume é pequeno: anos cabem em memória). As gravações desta
+   * aba não voltam por aqui: o store já as aplica na memória após o commit.
+   */
   abstract observar(): Observavel<Dados>;
   abstract lerTudo(): Promise<Dados>;
   abstract salvar(mudancas: Mudancas): Promise<void>;

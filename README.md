@@ -1,102 +1,72 @@
-# CartaoDiario
+# Cartão Diário
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Web app instalável (PWA) para o **Cartão Diário da Terapia Comportamental Dialética**: a pessoa registra impulsos, comportamentos-alvo e habilidades usadas, um dia de cada vez, e exporta tudo em PDF (igual ao cartão de papel) ou planilha antes da sessão.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+Os dados ficam **só no aparelho** (IndexedDB). Não há contas, servidor, analytics nem chamadas de rede: depois da primeira visita, o app funciona sem internet.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+Desenho de referência: canvas "Cartão Diário — caminhos e layouts". Plano: [`docs/plano-de-implementacao.md`](docs/plano-de-implementacao.md).
 
-## Run tasks
+## O que tem
 
-To run the dev server for your app, use:
+| Tela                | Rota                                     | O que faz                                                                                                       |
+| ------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Primeiro acesso     | `/boas-vindas`                           | Nome, comportamentos-alvo (até 7), lembrete; ou restaurar um backup                                             |
+| Hoje                | `/hoje`                                  | Faixa da semana, registro de hoje, atalho para o fechamento, lembrete de backup, convite para instalar, CVV 188 |
+| Registro do dia     | `/dia/:data`                             | Lista do dia (hoje e até 6 dias atrás), marcar/desmarcar, novo alvo, Concluir                                   |
+| Formulário          | `/dia/:data/item/:id`, `/dia/:data/novo` | Intensidade 0–5, seguiu?, uso de habilidades 0–7, habilidades por módulo, apoio em destaque                     |
+| Fechamento semanal  | `/semana`, `/semana/:inicio`             | Tarefa, resultado, progresso −3..+3, entradas em sessão, notas; salva sozinho                                   |
+| Semanas             | `/semana/anteriores`                     | Semanas fechadas e em aberto                                                                                    |
+| Exportar            | `/exportar`                              | Período, PDF ou XLSX, o que incluir; compartilhar (menu do celular) ou baixar                                   |
+| Ajustes             | `/ajustes`                               | Comportamentos, nome, lembrete (evento de calendário), backup/restauração, contato do terapeuta                 |
+| Meus comportamentos | `/ajustes/comportamentos`                | Adicionar, renomear, arquivar e restaurar alvos                                                                 |
 
-```sh
-npx nx serve web
+## Estrutura (monorepo Nx + pnpm)
+
+```
+apps/
+  web/            Angular 22 (standalone, signals, zoneless) + service worker
+  web-e2e/        Playwright: fluxos, acessibilidade (axe), offline, exportação
+libs/shared/      Roda no navegador e no Node (futuro backend NestJS)
+  models/         Schemas Zod, tipos e catálogos (habilidades, escalas, limites)
+  domain/         Regras puras: datas, formulário, resumos, backup, lembrete .ics
+  export/         Monta o cartão semanal e define o PDF (pdfmake) e a planilha
+tools/            Servidor estático com os cabeçalhos de produção; gerador de ícones
 ```
 
-To create a production bundle:
+As libs em `libs/shared` não podem importar Angular, NestJS, Dexie ou RxJS: a regra `@nx/enforce-module-boundaries` barra no lint.
+
+Dentro do app:
+
+- `core/dados`: `CartaoRepository` (interface) e `IndexedDbCartaoRepository` (Dexie). `CartaoStore` guarda o estado em signals e expõe as ações. As telas só falam com o store.
+- `core/plataforma`: compartilhar e baixar arquivos, instalação, persistência do armazenamento, atualização do service worker, badge do ícone, exportação, backup e lembrete.
+- `ui`: componentes da Identidade A · Névoa (tokens em `src/styles.scss`).
+- `features`: uma pasta por tela.
+
+## Comandos
 
 ```sh
-npx nx build web
+pnpm install
+pnpm start            # desenvolvimento em http://localhost:4200 (sem service worker)
+pnpm preview          # build de produção + servidor com CSP em http://localhost:4300
+pnpm test             # testes unitários (libs e app)
+pnpm lint             # lint + checagem de tipos
+pnpm e2e              # Playwright contra o build de produção
 ```
 
-To see all available targets to run for a project, run:
+Se o Chromium do Playwright estiver em outro caminho, defina `CHROMIUM_PATH` (ex.: `CHROMIUM_PATH=/opt/pw-browsers/chromium pnpm e2e`).
 
-```sh
-npx nx show project web
-```
+## Publicar
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Qualquer hospedagem estática com HTTPS. O service worker exige HTTPS.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Build: `pnpm exec nx build web`
+- Pasta publicada: `dist/apps/web/browser`
+- `_headers` (CSP e outros cabeçalhos de segurança) e `_redirects` (fallback de SPA) já vão no build no formato do Cloudflare Pages e do Netlify. Em outra hospedagem, replique os dois.
 
-## Add new projects
+## Decisões e limites conhecidos
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/angular:app demo
-```
-
-To generate a new library, use:
-
-```sh
-npx nx g @nx/angular:lib mylib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **Lembrete diário:** sem servidor, o navegador não dispara notificação num horário. O app gera um evento de calendário diário (`.ics`) para a pessoa adicionar ao celular. Notificação de verdade (Web Push) depende do backend.
+- **Perda de dados:** tudo fica no aparelho. Para mitigar, o app pede armazenamento persistente, convida a instalar (no Safari, sites não instalados podem perder dados depois de 7 dias sem uso), oferece backup em JSON e lembra de fazê-lo depois de 14 dias.
+- **Dia preenchido:** conta quando a pessoa toca "Concluir" ou responde ao menos um item. Dias antes do primeiro uso não contam como falta.
+- **Exportação:** PDF e XLSX são gerados no aparelho. As bibliotecas (cerca de 2 MB) ficam fora do carregamento inicial, mas o service worker as guarda para uso offline.
+- **Ainda não feito:** bloqueio por PIN/biometria, gráficos, grade da semana somente leitura, tema escuro e backend (sincronização, contas, envio ao terapeuta).

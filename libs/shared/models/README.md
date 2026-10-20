@@ -1,7 +1,5 @@
 # shared-models
 
-This library was generated with [Nx](https://nx.dev).
+Tipos, schemas Zod e catálogos do Cartão Diário (habilidades por módulo, escalas, limites). É a pasta de modelos compartilhada: sem Angular, NestJS ou Dexie.
 
-## Running unit tests
-
-Run `nx test shared-models` to execute the unit tests via [Vitest](https://vitest.dev/).
+`nx test shared-models` · `nx typecheck shared-models`

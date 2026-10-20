@@ -113,6 +113,8 @@
         <cd-icone nome="check" [tamanho]="20" [espessura]="2.5" />
         Semana salva. Já entra na próxima exportação.
       </p>
+      } @else if (rascunhoSalvo()) {
+      <p class="cd-ajuda">Rascunho salvo automaticamente.</p>
       }
     </div>
 

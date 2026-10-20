@@ -96,6 +96,7 @@ export class SemanaPagina {
   protected readonly entradas = signal<EntradasSessao>({});
   protected readonly notasTerapeuta = signal('');
   protected readonly salvaAgora = signal(false);
+  protected readonly rascunhoSalvo = signal(false);
 
   private semanaCarregada: string | null = null;
   private temporizador: ReturnType<typeof setTimeout> | null = null;
@@ -127,6 +128,7 @@ export class SemanaPagina {
 
   mudou(): void {
     this.salvaAgora.set(false);
+    this.rascunhoSalvo.set(false);
     if (this.temporizador) clearTimeout(this.temporizador);
     this.temporizador = setTimeout(() => void this.salvarPendente(), ESPERA_AUTOSALVAR_MS);
   }
@@ -159,6 +161,7 @@ export class SemanaPagina {
     this.temporizador = null;
     try {
       await this.store.salvarFechamento(this.semanaCarregada, this.campos(), false);
+      this.rascunhoSalvo.set(true);
     } catch (erro) {
       this.avisos.falha(erro);
     }
@@ -173,6 +176,7 @@ export class SemanaPagina {
     this.entradas.set({ ...(f?.entradasSessao ?? {}) });
     this.notasTerapeuta.set(f?.notasTerapeuta ?? '');
     this.salvaAgora.set(false);
+    this.rascunhoSalvo.set(false);
     this.semanaCarregada = semana;
   }
 }

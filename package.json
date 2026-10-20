@@ -1,9 +1,18 @@
 {
   "name": "@cartao-diario/source",
   "version": "0.0.0",
-  "license": "MIT",
-  "scripts": {},
+  "license": "UNLICENSED",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "start": "nx serve web",
+    "build": "nx build web",
+    "preview": "nx build web && node tools/servidor-estatico.mjs dist/apps/web/browser 4300",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint typecheck",
+    "e2e": "nx e2e web-e2e",
+    "format": "prettier --write ."
+  },
   "dependencies": {
     "@angular/common": "~22.1.0",
     "@angular/compiler": "~22.1.0",
@@ -27,6 +36,7 @@
     "@angular/cli": "~22.1.0",
     "@angular/compiler-cli": "~22.1.0",
     "@angular/language-service": "~22.1.0",
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.8.0",
     "@nx/angular": "23.3.0",
     "@nx/devkit": "23.3.0",

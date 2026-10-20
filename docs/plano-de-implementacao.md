@@ -3,23 +3,46 @@
 Fonte: canvas "Cartão Diário — caminhos e layouts" (16 pranchetas: mapa de caminhos, 8 telas funcionais, 2 exportações, 5 identidades visuais).
 Alvo: web app instalável (PWA) em Angular, dados persistidos no aparelho, monorepo pronto para receber um backend NestJS depois.
 
+## Status (20/10/2026)
+
+**Fases 0, 1 e 2 implementadas.** O MVP está completo e só depende do cliente. Fases 3 e 4 continuam abertas. Como rodar: [README](../README.md).
+
+Decisões tomadas nas questões em aberto (seção 6):
+
+| Questão              | Decisão                                                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identidade visual    | A · Névoa, em tokens CSS (`apps/web/src/styles.scss`)                                                                                       |
+| Lembrete sem backend | Evento de calendário diário (`.ics`), aviso em Hoje e badge no ícone                                                                        |
+| Dia preenchido       | "Concluir" ou pelo menos um item respondido; dias antes do primeiro uso não contam como falta                                               |
+| Semana do fechamento | Abre na semana atual, com seletor para voltar; salva sozinho e "Salvar semana" marca como fechada                                           |
+| Telas não desenhadas | Feitas no mesmo estilo: semanas anteriores, convite para instalar, restauração (também no primeiro acesso) e horário do lembrete em Ajustes |
+| PDF com 7 alvos      | Todas as colunas na mesma página (A4 paisagem); o cartão de habilidades vai na página seguinte                                              |
+| Hospedagem           | Ainda não escolhida; o build já leva `_headers` e `_redirects` (Cloudflare Pages/Netlify)                                                   |
+
+O que mudou em relação ao plano:
+
+- Registros usam a chave natural `[data+comportamentoId]`, sem `id` próprio. Dias e fechamentos também usam a data como chave.
+- O `CartaoStore` não usa o `liveQuery` do Dexie. Uma emissão atrasada podia sobrescrever uma gravação recente. Agora o store aplica cada gravação na memória após o commit, e outras abas avisam por `BroadcastChannel`.
+- Planilha com `write-excel-file`. O PDF usa a fonte Roboto embutida no pdfmake.
+- Zod é importado como namespace (`import * as z`), o que reduziu o bundle inicial em cerca de 370 KB.
+
 ---
 
 ## 1. Escopo, a partir do canvas
 
-| Prancheta | O que vira | Fase |
-|---|---|---|
-| 1 · Primeiro acesso | Onboarding em 3 passos: nome → comportamentos-alvo (até 7) → lembrete | 1 |
-| 2 · Início / Hoje | Faixa da semana, resumo do dia, atalho para fechamento, CVV 188 | 1 |
-| 3 · Registro do dia (oficial) | Lista do dia + formulário por comportamento (I · A · H · habilidades) | 1 |
-| Registro B (alternativa) | Só referência, **não implementar** | — |
-| 7 · Meus comportamentos | Adicionar, renomear, arquivar, restaurar (limite 7 ativos) | 1 |
-| 4 · Fechamento semanal | Tarefa, resultado, progresso −3..+3, 7 entradas em sessão, notas | 2 |
-| 5 · Exportar + PDF + XLS | Período, formato, o que incluir, compartilhar | 2 |
-| 6 · Ajustes | Lembrete, backup/restauração, contato do terapeuta, apoio | 2 |
-| Mapa: Histórico | Lista de semanas (**sem tela desenhada ainda**) | 2 |
-| Mapa: "Depois" | PIN/biometria, grade da semana, gráficos, envio direto ao terapeuta | 3–4 |
-| Identidades A–E | Tokens de design; as telas funcionais usam a **A · Névoa** | 0 |
+| Prancheta                     | O que vira                                                            | Fase |
+| ----------------------------- | --------------------------------------------------------------------- | ---- |
+| 1 · Primeiro acesso           | Onboarding em 3 passos: nome → comportamentos-alvo (até 7) → lembrete | 1    |
+| 2 · Início / Hoje             | Faixa da semana, resumo do dia, atalho para fechamento, CVV 188       | 1    |
+| 3 · Registro do dia (oficial) | Lista do dia + formulário por comportamento (I · A · H · habilidades) | 1    |
+| Registro B (alternativa)      | Só referência, **não implementar**                                    | —    |
+| 7 · Meus comportamentos       | Adicionar, renomear, arquivar, restaurar (limite 7 ativos)            | 1    |
+| 4 · Fechamento semanal        | Tarefa, resultado, progresso −3..+3, 7 entradas em sessão, notas      | 2    |
+| 5 · Exportar + PDF + XLS      | Período, formato, o que incluir, compartilhar                         | 2    |
+| 6 · Ajustes                   | Lembrete, backup/restauração, contato do terapeuta, apoio             | 2    |
+| Mapa: Histórico               | Lista de semanas (**sem tela desenhada ainda**)                       | 2    |
+| Mapa: "Depois"                | PIN/biometria, grade da semana, gráficos, envio direto ao terapeuta   | 3–4  |
+| Identidades A–E               | Tokens de design; as telas funcionais usam a **A · Névoa**            | 0    |
 
 ### Regras de negócio extraídas das telas
 
@@ -67,13 +90,13 @@ Aliases: `@cartao/shared/models`, `@cartao/shared/domain`, `@cartao/shared/expor
 
 Fronteiras, aplicadas com `@nx/enforce-module-boundaries` e tags:
 
-| Projeto | Tags | Pode depender de |
-|---|---|---|
-| shared/models | `scope:shared`, `type:models` | só `zod` |
-| shared/domain | `scope:shared`, `type:domain` | models |
-| shared/export | `scope:shared`, `type:export` | models, domain |
-| apps/web | `scope:web` | qualquer `scope:shared` |
-| apps/api | `scope:api` | qualquer `scope:shared` |
+| Projeto       | Tags                          | Pode depender de        |
+| ------------- | ----------------------------- | ----------------------- |
+| shared/models | `scope:shared`, `type:models` | só `zod`                |
+| shared/domain | `scope:shared`, `type:domain` | models                  |
+| shared/export | `scope:shared`, `type:export` | models, domain          |
+| apps/web      | `scope:web`                   | qualquer `scope:shared` |
+| apps/api      | `scope:api`                   | qualquer `scope:shared` |
 
 As libs `scope:shared` proíbem `@angular/*`, `@nestjs/*`, `dexie` e APIs de DOM (`bannedExternalImports`). Assim elas rodam igual no navegador e no Node.
 
@@ -82,13 +105,13 @@ As libs `scope:shared` proíbem `@angular/*`, `@nestjs/*`, `dexie` e APIs de DOM
 Cada tipo é `z.infer<>` de um schema Zod. O mesmo schema valida o arquivo de backup na restauração (fase 2) e os DTOs do NestJS (fase 4). Esboço:
 
 ```ts
-export type DataLocal = string;            // 'AAAA-MM-DD' no fuso do usuário (nunca Date/UTC)
+export type DataLocal = string; // 'AAAA-MM-DD' no fuso do usuário (nunca Date/UTC)
 
 export interface Entidade {
-  id: string;                              // UUID gerado no cliente (crypto.randomUUID)
-  criadoEm: string;                        // instante ISO 8601
+  id: string; // UUID gerado no cliente (crypto.randomUUID)
+  criadoEm: string; // instante ISO 8601
   atualizadoEm: string;
-  removidoEm?: string;                     // soft delete — prepara a sincronização
+  removidoEm?: string; // soft delete — prepara a sincronização
 }
 
 export interface Comportamento extends Entidade {
@@ -100,22 +123,23 @@ export interface Comportamento extends Entidade {
   arquivadoEm?: DataLocal;
 }
 
-export interface Dia extends Entidade {    // existe quando o dia foi aberto/concluído
+export interface Dia extends Entidade {
+  // existe quando o dia foi aberto/concluído
   data: DataLocal;
-  concluidoEm?: string;                    // "Concluir" → dia conta como preenchido
+  concluidoEm?: string; // "Concluir" → dia conta como preenchido
 }
 
 export interface RegistroComportamento extends Entidade {
   data: DataLocal;
   comportamentoId: string;
-  intensidade: 0 | 1 | 2 | 3 | 4 | 5;      // I
-  seguiu: boolean;                         // A (S/N)
+  intensidade: 0 | 1 | 2 | 3 | 4 | 5; // I
+  seguiu: boolean; // A (S/N)
   usoHabilidade: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7; // H
-  habilidades: HabilidadeId[];             // vazio se usoHabilidade < 4
+  habilidades: HabilidadeId[]; // vazio se usoHabilidade < 4
 }
 
 export interface FechamentoSemanal extends Entidade {
-  semanaInicio: DataLocal;                 // segunda-feira
+  semanaInicio: DataLocal; // segunda-feira
   tarefaCasa: string;
   resultadoTarefa: string;
   progresso: -3 | -2 | -1 | 0 | 1 | 2 | 3;
@@ -185,31 +209,31 @@ apps/web/src/app/
 
 Rotas. Usar rota em vez de estado interno faz o botão "voltar" do Android funcionar:
 
-| Rota | Tela |
-|---|---|
-| `/boas-vindas` | Onboarding (passo na query `?passo=`) |
-| `/hoje` | Início (padrão) |
-| `/dia/:data` | Lista do dia |
+| Rota                                      | Tela                                    |
+| ----------------------------------------- | --------------------------------------- |
+| `/boas-vindas`                            | Onboarding (passo na query `?passo=`)   |
+| `/hoje`                                   | Início (padrão)                         |
+| `/dia/:data`                              | Lista do dia                            |
 | `/dia/:data/item/:id` · `/dia/:data/novo` | Formulário do comportamento / novo alvo |
-| `/semana` · `/semana/:inicio` | Fechamento semanal |
-| `/historico` | Lista de semanas |
-| `/exportar` · `/exportar/previa` | Exportar e prévia |
-| `/ajustes` · `/ajustes/comportamentos` | Ajustes / Meus comportamentos |
+| `/semana` · `/semana/:inicio`             | Fechamento semanal                      |
+| `/historico`                              | Lista de semanas                        |
+| `/exportar` · `/exportar/previa`          | Exportar e prévia                       |
+| `/ajustes` · `/ajustes/comportamentos`    | Ajustes / Meus comportamentos           |
 
-Estado: um *store* por feature, que é um serviço com `signal`/`computed`, alimentado por `liveQuery` do Dexie convertido com `toSignal`. Assim uma gravação atualiza todas as telas sem NgRx. Formulários: o formulário do comportamento é uma máquina de estados pequena (rascunho → normalizar → gravar), validada pelo schema Zod.
+Estado: um _store_ por feature, que é um serviço com `signal`/`computed`, alimentado por `liveQuery` do Dexie convertido com `toSignal`. Assim uma gravação atualiza todas as telas sem NgRx. Formulários: o formulário do comportamento é uma máquina de estados pequena (rascunho → normalizar → gravar), validada pelo schema Zod.
 
 ### 2.6 Persistência no aparelho
 
 - **IndexedDB via Dexie.js**, banco `cartao-diario`:
 
-  | Store | Chave / índices |
-  |---|---|
-  | `perfil` | chave fixa `'perfil'` |
-  | `comportamentos` | `id`, `tipo`, `arquivadoEm` |
-  | `dias` | `data` |
-  | `registros` | `id`, `[data+comportamentoId]` (único), `data`, `comportamentoId` |
-  | `fechamentos` | `semanaInicio` |
-  | `meta` | chave/valor (`schemaVersion`, etc.) |
+  | Store            | Chave / índices                                                   |
+  | ---------------- | ----------------------------------------------------------------- |
+  | `perfil`         | chave fixa `'perfil'`                                             |
+  | `comportamentos` | `id`, `tipo`, `arquivadoEm`                                       |
+  | `dias`           | `data`                                                            |
+  | `registros`      | `id`, `[data+comportamentoId]` (único), `data`, `comportamentoId` |
+  | `fechamentos`    | `semanaInicio`                                                    |
+  | `meta`           | chave/valor (`schemaVersion`, etc.)                               |
 
 - **Repositórios atrás de interfaces** (`ComportamentoRepository`, `RegistroRepository`…), injetados por token. As features não sabem que é IndexedDB. Na fase 4 a implementação troca para "local + sync" e as telas não mudam.
 - **Contra perda de dados.** Os dados só existem no celular, e esse é o maior risco do produto.
@@ -221,7 +245,7 @@ Estado: um *store* por feature, que é um serviço com `signal`/`computed`, alim
 
 ### 2.7 PWA
 
-- `ng add @angular/pwa`. O manifest leva `lang: pt-BR`, `display: standalone`, `theme_color` da identidade e ícones *maskable*. O service worker (`ngsw-config.json`) faz *prefetch* do app shell e das fontes. O app funciona 100% offline.
+- `ng add @angular/pwa`. O manifest leva `lang: pt-BR`, `display: standalone`, `theme_color` da identidade e ícones _maskable_. O service worker (`ngsw-config.json`) faz _prefetch_ do app shell e das fontes. O app funciona 100% offline.
 - **Fontes self-hosted** (`@fontsource/atkinson-hyperlegible`, `@fontsource/instrument-sans`), sem Google Fonts em tempo de execução. Isso garante o funcionamento offline e não vaza o IP de quem usa um app de saúde mental para terceiros.
 - Instalação: no Android/Chrome, capturar `beforeinstallprompt` e oferecer um botão "Instalar". No iOS, mostrar um cartão com instruções (Compartilhar → Adicionar à Tela de Início). Isso **ainda não está desenhado no canvas**.
 - Compartilhar exportação: Web Share API com arquivo (`navigator.share({ files })`). Se não houver suporte, cai para download.
@@ -231,7 +255,7 @@ Estado: um *store* por feature, que é um serviço com `signal`/`computed`, alim
 
 Sem servidor, um PWA **não consegue** disparar uma notificação confiável às 21h. A Notification Triggers API foi abandonada, e o Periodic Background Sync só existe no Chromium e não respeita horário. Proposta:
 
-- **Fases 1 e 2:** o toggle e o horário ficam salvos. O app gera um evento recorrente de calendário (`.ics`, diário no horário escolhido) que a pessoa adiciona ao calendário do celular. Funciona no iOS e no Android. Além disso, Início mostra os dias que faltam e o app instalado ganha um *badge* (`navigator.setAppBadge`) onde houver suporte.
+- **Fases 1 e 2:** o toggle e o horário ficam salvos. O app gera um evento recorrente de calendário (`.ics`, diário no horário escolhido) que a pessoa adiciona ao calendário do celular. Funciona no iOS e no Android. Além disso, Início mostra os dias que faltam e o app instalado ganha um _badge_ (`navigator.setAppBadge`) onde houver suporte.
 - **Fase 4:** notificação de verdade via Web Push (VAPID) disparada pelo NestJS. No iOS só funciona com o app instalado (16.4+).
 
 ### 2.9 Privacidade e segurança
@@ -249,6 +273,7 @@ Fase 3: backup criptografado com senha (Web Crypto AES-GCM + PBKDF2) e bloqueio 
 ## 3. Fases e entregas
 
 ### Fase 0 — Fundação
+
 - [ ] Workspace Nx com pnpm no repositório atual (`npx nx@latest init` ou `create-nx-workspace --preset=apps`, depois `nx add @nx/angular`).
 - [ ] `apps/web` (Angular, SCSS, esbuild) e `apps/web-e2e` (Playwright).
 - [ ] Libs `shared/models`, `shared/domain` e `shared/export` (`@nx/js`, Vitest), com tags e regras de fronteira.
@@ -256,14 +281,15 @@ Fase 3: backup criptografado com senha (Web Crypto AES-GCM + PBKDF2) e bloqueio 
 - [ ] `@angular/pwa`, manifest, ícones e fontes self-hosted.
 - [ ] Tokens da Identidade A (cores, tipografia, raios, alvos de toque ≥ 44 px) e componentes base de `ui/`.
 - [ ] CI no GitHub Actions: `nx affected -t lint test build e2e`.
-- [ ] Deploy estático com HTTPS e *fallback* de SPA (Cloudflare Pages ou Netlify).
+- [ ] Deploy estático com HTTPS e _fallback_ de SPA (Cloudflare Pages ou Netlify).
 
 **Pronto quando:** o app vazio instala no Android e no iPhone, abre em modo avião e o CI está verde.
 
 ### Fase 1 — Núcleo do registro (MVP, parte 1)
+
 - [ ] `shared/models`: schemas Zod, tipos e catálogos.
 - [ ] `shared/domain`: todas as regras da seção 1, com testes.
-- [ ] Banco Dexie, repositórios, *seed* dos 3 impulsos fixos e `storage.persist()`.
+- [ ] Banco Dexie, repositórios, _seed_ dos 3 impulsos fixos e `storage.persist()`.
 - [ ] Onboarding com 3 passos e guard.
 - [ ] Início: faixa da semana, resumo de hoje, atalhos, CVV.
 - [ ] Registro do dia: lista, formulário, navegação de até 6 dias, novo alvo, desmarcar/limpar, salvamento automático, banner de apoio.
@@ -273,26 +299,29 @@ Fase 3: backup criptografado com senha (Web Crypto AES-GCM + PBKDF2) e bloqueio 
 **Pronto quando:** dá para substituir a parte diária do cartão de papel.
 
 ### Fase 2 — Semana, exportação e dados (MVP, parte 2)
+
 - [ ] Fechamento semanal com resumo calculado.
 - [ ] Histórico: lista de semanas, abertas e fechadas.
 - [ ] `shared/export`: montagem com testes de snapshot. PDF (página 1: grade; página 2: cartão de habilidades) e XLSX (4 abas).
 - [ ] Tela Exportar: período, formato, incluir, prévia e compartilhar.
 - [ ] Ajustes: lembrete (com troca de horário, que hoje só existe no onboarding), backup/restauração, contato do terapeuta, apoio.
-- [ ] Lembrete via `.ics`, *badge* e convite para instalar.
+- [ ] Lembrete via `.ics`, _badge_ e convite para instalar.
 - [ ] Testes em aparelhos reais (Safari no iOS e Chrome no Android). Auditoria Lighthouse de PWA e acessibilidade.
 
 **Pronto quando:** o PDF exportado substitui o cartão de papel na sessão e um backup restaurado em outro aparelho reproduz tudo.
 
 ### Fase 3 — Pós-MVP, ainda só cliente
+
 - [ ] Grade da semana (somente leitura) e gráficos de tendência de intensidade.
 - [ ] Bloqueio por PIN/biometria e backup criptografado.
 - [ ] Tema escuro, se a Identidade C · Noite for adotada como variante.
 
 ### Fase 4 — Backend NestJS (futuro)
+
 - [ ] `nx add @nx/nest` e `apps/api`, com Postgres (ORM a decidir: Prisma ou Drizzle).
 - [ ] Validação de DTOs com os mesmos schemas Zod de `shared/models`.
 - [ ] Contas e consentimento (LGPD). Papel de terapeuta, se fizer sentido.
-- [ ] Sincronização *local-first*: tabela *outbox* no Dexie, endpoints `push`/`pull` por `atualizadoEm`, *last-write-wins* por registro e `removidoEm` como lápide.
+- [ ] Sincronização _local-first_: tabela _outbox_ no Dexie, endpoints `push`/`pull` por `atualizadoEm`, _last-write-wins_ por registro e `removidoEm` como lápide.
 - [ ] Web Push para o lembrete no horário local de cada pessoa.
 - [ ] Envio direto ao terapeuta, com o PDF gerado no servidor pela mesma `shared/export`.
 
@@ -300,26 +329,26 @@ Fase 3: backup criptografado com senha (Web Crypto AES-GCM + PBKDF2) e bloqueio 
 
 ## 4. Testes
 
-| Camada | Ferramenta | Foco |
-|---|---|---|
-| shared/models, domain | Vitest | regras, datas e fusos, migração de backup |
-| shared/export | Vitest + snapshot | grade semanal, destaques, abas da planilha |
-| Repositórios | Vitest + `fake-indexeddb` | gravação, índices, soft delete |
-| Componentes | Vitest + Angular Testing Library | formulário do comportamento (estados condicionais) |
-| Fluxos | Playwright (perfis mobile) | onboarding, registro, exportação, uso offline |
+| Camada                | Ferramenta                       | Foco                                               |
+| --------------------- | -------------------------------- | -------------------------------------------------- |
+| shared/models, domain | Vitest                           | regras, datas e fusos, migração de backup          |
+| shared/export         | Vitest + snapshot                | grade semanal, destaques, abas da planilha         |
+| Repositórios          | Vitest + `fake-indexeddb`        | gravação, índices, soft delete                     |
+| Componentes           | Vitest + Angular Testing Library | formulário do comportamento (estados condicionais) |
+| Fluxos                | Playwright (perfis mobile)       | onboarding, registro, exportação, uso offline      |
 
 ---
 
 ## 5. Riscos
 
-| Risco | Mitigação |
-|---|---|
-| Perda de dados (só no aparelho) | `persist()`, incentivo a instalar, backup com lembrete, exportação |
-| Lembrete não dispara sem servidor | `.ics` e aviso no app agora, Web Push na fase 4 (seção 2.8) |
-| Diferenças do iOS (instalação, armazenamento, share) | Testes em iPhone real desde a fase 0 |
-| Virada do dia, fuso, registro após a meia-noite | `DataLocal` como string, janela de 6 dias, "Como foi ontem?" |
-| Evolução do schema | Versões do Dexie e `schemaVersion` no backup com `migrarBackup` |
-| Dado sensível | Zero terceiros, fontes locais, CSP; LGPD na fase 4 |
+| Risco                                                | Mitigação                                                          |
+| ---------------------------------------------------- | ------------------------------------------------------------------ |
+| Perda de dados (só no aparelho)                      | `persist()`, incentivo a instalar, backup com lembrete, exportação |
+| Lembrete não dispara sem servidor                    | `.ics` e aviso no app agora, Web Push na fase 4 (seção 2.8)        |
+| Diferenças do iOS (instalação, armazenamento, share) | Testes em iPhone real desde a fase 0                               |
+| Virada do dia, fuso, registro após a meia-noite      | `DataLocal` como string, janela de 6 dias, "Como foi ontem?"       |
+| Evolução do schema                                   | Versões do Dexie e `schemaVersion` no backup com `migrarBackup`    |
+| Dado sensível                                        | Zero terceiros, fontes locais, CSP; LGPD na fase 4                 |
 
 ---
 

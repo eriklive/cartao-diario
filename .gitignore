@@ -47,3 +47,7 @@ Thumbs.db
 .angular
 vitest.config.*.timestamp*
 .vitest
+
+# Playwright
+test-results
+playwright-report

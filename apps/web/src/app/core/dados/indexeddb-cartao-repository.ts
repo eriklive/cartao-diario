@@ -1,4 +1,4 @@
-import Dexie, { liveQuery, type EntityTable, type Table } from 'dexie';
+import Dexie, { type EntityTable, type Table } from 'dexie';
 import type { Comportamento, Dados, Dia, Fechamento, Perfil, Registro } from '@cartao/shared/models';
 import { CartaoRepository, type Mudancas, type Observavel } from './cartao-repository';
 
@@ -30,14 +30,34 @@ export class BancoCartao extends Dexie {
 
 export class IndexedDbCartaoRepository extends CartaoRepository {
   private readonly banco: BancoCartao;
+  /** Avisa outras abas/janelas do app que os dados mudaram (não chega na própria). */
+  private readonly canal: BroadcastChannel | null;
 
   constructor(banco?: BancoCartao) {
     super();
     this.banco = banco ?? new BancoCartao();
+    this.canal = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(`${this.banco.name}-mudancas`);
   }
 
   override observar(): Observavel<Dados> {
-    return liveQuery(() => this.lerTudo());
+    return {
+      subscribe: ({ next, error }) => {
+        let ativo = true;
+        const carregar = () =>
+          this.lerTudo().then(
+            (dados) => ativo && next?.(dados),
+            (erro) => ativo && error?.(erro),
+          );
+        void carregar();
+        this.canal?.addEventListener('message', carregar);
+        return {
+          unsubscribe: () => {
+            ativo = false;
+            this.canal?.removeEventListener('message', carregar);
+          },
+        };
+      },
+    };
   }
 
   override async lerTudo(): Promise<Dados> {
@@ -63,6 +83,7 @@ export class IndexedDbCartaoRepository extends CartaoRepository {
       if (m.dias?.length) await b.dias.bulkPut(m.dias);
       if (m.fechamentos?.length) await b.fechamentos.bulkPut(m.fechamentos);
     });
+    this.canal?.postMessage('salvo');
   }
 
   override async substituirTudo(dados: Dados): Promise<void> {
@@ -75,5 +96,6 @@ export class IndexedDbCartaoRepository extends CartaoRepository {
       await b.dias.bulkPut(dados.dias);
       await b.fechamentos.bulkPut(dados.fechamentos);
     });
+    this.canal?.postMessage('substituido');
   }
 }

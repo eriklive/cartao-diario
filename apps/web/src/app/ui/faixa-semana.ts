@@ -62,7 +62,8 @@ type Estado = 'preenchido' | 'faltou' | 'hoje' | 'neutro';
       border-color: transparent;
     }
     .neutro {
-      opacity: 0.6;
+      color: var(--cd-texto-suave);
+      font-weight: 400;
     }
   `,
   template: `

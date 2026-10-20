@@ -1,7 +1,5 @@
 # shared-domain
 
-This library was generated with [Nx](https://nx.dev).
+Regras puras do cartão: datas e semanas (segunda a domingo), regras do formulário, visibilidade dos comportamentos, resumos e frequência, backup (leitura, migração e validação) e lembrete em `.ics`.
 
-## Running unit tests
-
-Run `nx test shared-domain` to execute the unit tests via [Vitest](https://vitest.dev/).
+`nx test shared-domain` · `nx typecheck shared-domain`
