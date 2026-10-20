@@ -4,8 +4,10 @@ import { IMPULSOS_FIXOS, LIMITE_ALVOS, PerfilSchema, type Horario } from '@carta
 import { CartaoStore } from '../../core/dados/cartao-store';
 import { Armazenamento } from '../../core/plataforma/armazenamento';
 import { Backups } from '../../core/plataforma/backups';
+import { Instalacao } from '../../core/plataforma/instalacao';
 import { LembreteCalendario } from '../../core/plataforma/lembrete-calendario';
 import { Avisos } from '../../ui/avisos';
+import { ConviteInstalar } from '../../ui/convite-instalar';
 import { Icone } from '../../ui/icone';
 import { Interruptor } from '../../ui/interruptor';
 
@@ -14,7 +16,7 @@ const HORARIOS: Horario[] = ['20:00', '21:00', '22:00', '23:00'];
 @Component({
   selector: 'cd-onboarding',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icone, Interruptor],
+  imports: [ConviteInstalar, Icone, Interruptor],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.scss',
 })
@@ -25,6 +27,7 @@ export class OnboardingPagina {
   private readonly armazenamento = inject(Armazenamento);
   private readonly backups = inject(Backups);
   private readonly calendario = inject(LembreteCalendario);
+  protected readonly instalacao = inject(Instalacao);
 
   protected readonly impulsos = IMPULSOS_FIXOS;
   protected readonly limite = LIMITE_ALVOS;

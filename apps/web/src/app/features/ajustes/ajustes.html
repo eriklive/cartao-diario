@@ -116,7 +116,7 @@
       </div>
     </section>
 
-    @if (!instalacao.instalado() && instalacao.convidar()) {
+    @if (instalacao.convidar()) {
       <cd-convite-instalar [dispensavel]="false" />
     }
 

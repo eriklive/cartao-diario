@@ -3,6 +3,10 @@ import { Instalacao } from '../core/plataforma/instalacao';
 import { Avisos } from './avisos';
 import { Icone } from './icone';
 
+/**
+ * Card "Adicione à tela de início". Mostra o botão nativo quando o navegador
+ * oferece; senão, o passo a passo do aparelho (iPhone, Android ou outro).
+ */
 @Component({
   selector: 'cd-convite-instalar',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,16 +32,24 @@ import { Icone } from './icone';
       flex-direction: column;
       gap: 4px;
     }
-    .acoes {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    ol {
+    .passos {
       margin: 0;
-      padding-left: 20px;
+      padding-left: 22px;
       font-size: 15px;
       line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .simbolo {
+      display: inline-flex;
+      vertical-align: -3px;
+      margin: 0 2px;
+      color: var(--cd-primaria);
+    }
+    .aviso-ios {
+      font-size: 14px;
+      padding: 10px 12px;
     }
   `,
   template: `
@@ -45,30 +57,62 @@ import { Icone } from './icone';
       <div class="topo">
         <span class="icone" aria-hidden="true"><cd-icone nome="instalar" /></span>
         <div class="textos">
-          <h2 id="convite-titulo" class="cd-lista__titulo">Instale o app na tela de início</h2>
-          <p class="cd-ajuda">Assim ele abre sem internet e o navegador não apaga seus registros.</p>
+          <h2 id="convite-titulo" class="cd-lista__titulo">Adicione à tela de início</h2>
+          <p class="cd-ajuda">Ele abre como um app, funciona sem internet e o navegador não apaga seus registros.</p>
         </div>
       </div>
+
       @if (instalacao.podeInstalarDireto()) {
-        <div class="acoes">
-          <button type="button" class="cd-botao cd-botao--primario cd-botao--pequeno" (click)="instalar()">
-            Instalar
-          </button>
-          @if (dispensavel()) {
-            <button type="button" class="cd-botao cd-botao--texto" (click)="instalacao.dispensar()">Agora não</button>
+        <button type="button" class="cd-botao cd-botao--primario" (click)="instalar()">
+          <cd-icone nome="instalar" [tamanho]="20" />
+          Adicionar à tela de início
+        </button>
+      } @else {
+        @switch (instalacao.plataforma) {
+          @case ('ios') {
+            <ol class="passos">
+              <li>
+                Toque em
+                <span class="simbolo" aria-hidden="true"><cd-icone nome="exportar" [tamanho]="18" /></span>
+                <b>Compartilhar</b>, na barra do navegador.
+              </li>
+              <li>Role a lista e toque em <b>Adicionar à Tela de Início</b>.</li>
+              <li>Toque em <b>Adicionar</b> e abra o app pelo novo ícone.</li>
+            </ol>
+            @if (contexto() === 'primeiro-acesso') {
+              <p class="cd-aviso cd-aviso--alerta aviso-ios">
+                No iPhone, faça isso antes de começar: o app da tela de início guarda os registros separado do
+                navegador.
+              </p>
+            }
           }
-        </div>
-      } @else if (instalacao.ehIos) {
-        <ol>
-          <li>Abra este app no <b>Safari</b>.</li>
-          <li>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</li>
-          <li>Escolha <b>Adicionar à Tela de Início</b>.</li>
-        </ol>
-        @if (dispensavel()) {
-          <div class="acoes">
-            <button type="button" class="cd-botao cd-botao--texto" (click)="instalacao.dispensar()">Agora não</button>
-          </div>
+          @case ('android') {
+            <ol class="passos">
+              <li>
+                Toque no menu
+                <span class="simbolo" aria-hidden="true"><cd-icone nome="menu" [tamanho]="18" /></span>
+                do navegador.
+              </li>
+              <li>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>
+            </ol>
+          }
+          @case ('navegador-interno') {
+            <p class="cd-ajuda">
+              Este navegador, aberto dentro de outro app, não instala aplicativos. Abra este endereço no
+              <b>Chrome</b> (Android) ou no <b>Safari</b> (iPhone).
+            </p>
+          }
+          @default {
+            <p class="cd-ajuda">
+              No menu do navegador, procure <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>. No celular, abra
+              este endereço no Chrome (Android) ou no Safari (iPhone).
+            </p>
+          }
         }
+      }
+
+      @if (dispensavel()) {
+        <button type="button" class="cd-botao cd-botao--texto" (click)="instalacao.dispensar()">Agora não</button>
       }
     </section>
   `,
@@ -77,8 +121,10 @@ export class ConviteInstalar {
   protected readonly instalacao = inject(Instalacao);
   private readonly avisos = inject(Avisos);
   readonly dispensavel = input(true);
+  /** No primeiro acesso, o iPhone ganha um aviso a mais (armazenamento separado do Safari). */
+  readonly contexto = input<'inicio' | 'primeiro-acesso'>('inicio');
 
   async instalar(): Promise<void> {
-    if (await this.instalacao.instalar()) this.avisos.info('App instalado. Abra pela tela de início.');
+    if (await this.instalacao.instalar()) this.avisos.info('App adicionado. Abra pelo ícone na tela de início.');
   }
 }

@@ -24,6 +24,9 @@
           Registre seus impulsos e as habilidades que usou, um dia de cada vez. Antes da sessão, exporte tudo em PDF ou
           planilha.
         </p>
+        @if (instalacao.convidar()) {
+          <cd-convite-instalar contexto="primeiro-acesso" [dispensavel]="false" />
+        }
         <div class="campo">
           <label for="nome" class="cd-rotulo-campo">Como quer ser chamado(a)?</label>
           <input

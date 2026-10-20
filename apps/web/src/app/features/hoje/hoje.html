@@ -9,6 +9,10 @@
       <cd-apoio-destaque [telefoneTerapeuta]="store.telefoneTerapeuta()" />
     }
 
+    @if (mostrarConvite()) {
+      <cd-convite-instalar />
+    }
+
     <section class="cd-cartao" aria-labelledby="titulo-semana">
       <h2 id="titulo-semana" class="cd-rotulo-secao">Semana de {{ rotuloSemana() }}</h2>
       <cd-faixa-semana [dias]="faixa()" />
@@ -67,10 +71,6 @@
         </button>
       </section>
     }
-    @if (mostrarConvite()) {
-      <cd-convite-instalar />
-    }
-
     <cd-apoio-cvv class="apoio" />
   </div>
 </main>

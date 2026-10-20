@@ -7,11 +7,17 @@ interface EventoInstalacao extends Event {
 }
 
 const CHAVE_DISPENSADO = 'cd.convite-instalar-dispensado-em';
+/** "Agora não" esconde o convite em Hoje por este tempo; depois ele volta. */
+const DIAS_DISPENSADO = 30;
+
+/** Como instalar neste aparelho, quando o navegador não oferece o botão nativo. */
+export type PlataformaInstalacao = 'ios' | 'android' | 'navegador-interno' | 'outra';
 
 /**
  * Instalar na tela de início protege os dados (o Safari pode apagar dados
  * de sites não instalados após 7 dias sem uso) e deixa o app offline.
- * Android/Chrome: botão com o prompt nativo. iOS: instruções.
+ * Chrome/Edge: botão com o prompt nativo, quando o navegador libera.
+ * Nos demais: instruções para o aparelho.
  */
 @Injectable({ providedIn: 'root' })
 export class Instalacao {
@@ -21,13 +27,12 @@ export class Instalacao {
   private readonly evento = signal<EventoInstalacao | null>(null);
 
   readonly instalado = signal(this.estaInstalado());
-  readonly ehIos =
-    /iPad|iPhone|iPod/.test(this.janela.navigator.userAgent) ||
-    (this.janela.navigator.platform === 'MacIntel' && this.janela.navigator.maxTouchPoints > 1);
+  readonly plataforma = this.detectarPlataforma();
+  /** O navegador já ofereceu o prompt nativo (Chrome libera depois de algum uso do site). */
   readonly podeInstalarDireto = computed(() => !!this.evento());
   readonly dispensado = signal(this.lerDispensado());
-  /** Vale mostrar o convite: não instalado e há como instalar (prompt ou instruções do iOS). */
-  readonly convidar = computed(() => !this.instalado() && (this.podeInstalarDireto() || this.ehIos));
+  /** Vale mostrar o convite: o app está aberto no navegador, não instalado. */
+  readonly convidar = computed(() => !this.instalado());
 
   constructor() {
     const aoPedir = (e: Event) => {
@@ -52,6 +57,7 @@ export class Instalacao {
     await e.prompt();
     const { outcome } = await e.userChoice;
     this.evento.set(null);
+    if (outcome === 'accepted') this.instalado.set(true);
     return outcome === 'accepted';
   }
 
@@ -70,9 +76,20 @@ export class Instalacao {
 
   private lerDispensado(): boolean {
     try {
-      return !!this.janela.localStorage.getItem(CHAVE_DISPENSADO);
+      const em = this.janela.localStorage.getItem(CHAVE_DISPENSADO);
+      return !!em && Date.now() - Date.parse(em) < DIAS_DISPENSADO * 86_400_000;
     } catch {
       return false;
     }
+  }
+
+  private detectarPlataforma(): PlataformaInstalacao {
+    const nav = this.janela.navigator;
+    const ua = nav.userAgent;
+    // Navegadores embutidos em outros apps (Instagram, Facebook…) não instalam PWAs.
+    if (/FBAN|FBAV|Instagram|Line\/|; wv\)/.test(ua)) return 'navegador-interno';
+    if (/iPad|iPhone|iPod/.test(ua) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1)) return 'ios';
+    if (/Android/.test(ua)) return 'android';
+    return 'outra';
   }
 }

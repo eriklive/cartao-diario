@@ -20,7 +20,8 @@ export type NomeIcone =
   | 'instalar'
   | 'arquivo'
   | 'cadeado'
-  | 'lista';
+  | 'lista'
+  | 'menu';
 
 /** Ícones de contorno 1,75 px, cantos arredondados. Sempre decorativos: o texto ou `aria-label` vai no botão. */
 @Component({
@@ -113,6 +114,11 @@ export type NomeIcone =
         @case ('cadeado') {
           <rect x="5" y="11" width="14" height="10" rx="2" />
           <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        }
+        @case ('menu') {
+          <circle cx="12" cy="5" r="1.25" fill="currentColor" />
+          <circle cx="12" cy="12" r="1.25" fill="currentColor" />
+          <circle cx="12" cy="19" r="1.25" fill="currentColor" />
         }
         @case ('lista') {
           <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />

@@ -77,8 +77,12 @@ Diferenças do Pages tratadas no build (`pnpm build:pages`):
 
 Abra o endereço publicado no celular.
 
-- **Android (Chrome):** use o botão "Instalar" no Início ou o menu ⋮ › Instalar app.
-- **iPhone (Safari):** toque em Compartilhar › Adicionar à Tela de Início. Precisa ser pelo Safari.
+O card **Adicione à tela de início** aparece no primeiro acesso, no topo de Hoje e em Ajustes enquanto o app estiver aberto no navegador. Ele mostra o caminho certo para cada aparelho:
+
+- **Android (Chrome):** botão "Adicionar à tela de início", quando o Chrome libera; antes disso, o caminho pelo menu ⋮ › Instalar app.
+- **iPhone:** Compartilhar › Adicionar à Tela de Início. Instale antes do primeiro acesso: no iPhone, o app da tela de início guarda os registros separado do navegador.
+
+Em Hoje, "Agora não" esconde o card por 30 dias.
 
 Roteiro rápido:
 
