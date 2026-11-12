@@ -1,0 +1,133 @@
+{
+  "configVersion": 1,
+  "timestamp": 1794502218156,
+  "index": "/cartao-diario/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/cartao-diario/chunk-2owfhtae.js",
+        "/cartao-diario/chunk-B1lNRhjU.js",
+        "/cartao-diario/chunk-BSmaAVps.js",
+        "/cartao-diario/chunk-BbT2Wmlt.js",
+        "/cartao-diario/chunk-BfqTFkV1.js",
+        "/cartao-diario/chunk-BhzK9D5r.js",
+        "/cartao-diario/chunk-C-v5ffGN.js",
+        "/cartao-diario/chunk-C3IRTq7K.js",
+        "/cartao-diario/chunk-C3KryfkC.js",
+        "/cartao-diario/chunk-CUY4WDmC.js",
+        "/cartao-diario/chunk-Cix3V7ZA.js",
+        "/cartao-diario/chunk-CqUCEAbg.js",
+        "/cartao-diario/chunk-CwQka_C7.js",
+        "/cartao-diario/chunk-DFJrW4Z7.js",
+        "/cartao-diario/chunk-DFSl3x-k.js",
+        "/cartao-diario/chunk-DhTxuX3i.js",
+        "/cartao-diario/chunk-DiHxgv1d.js",
+        "/cartao-diario/chunk-DoktDpGc.js",
+        "/cartao-diario/chunk-DvB2krMk.js",
+        "/cartao-diario/chunk-DxqKAYlM.js",
+        "/cartao-diario/chunk-Dylv8d07.js",
+        "/cartao-diario/chunk-f9zzvtI3.js",
+        "/cartao-diario/favicon.ico",
+        "/cartao-diario/icons/apple-touch-icon.png",
+        "/cartao-diario/icons/favicon.svg",
+        "/cartao-diario/icons/icon-192.png",
+        "/cartao-diario/icons/icon-512.png",
+        "/cartao-diario/icons/maskable-192.png",
+        "/cartao-diario/icons/maskable-512.png",
+        "/cartao-diario/index.html",
+        "/cartao-diario/main-ZKKIMDNU.js",
+        "/cartao-diario/manifest.webmanifest",
+        "/cartao-diario/media/atkinson-hyperlegible-latin-400-normal-SPAYGEOD.woff2",
+        "/cartao-diario/media/atkinson-hyperlegible-latin-700-normal-FHYJOTYL.woff2",
+        "/cartao-diario/media/instrument-sans-latin-600-normal-4CHHBDS7.woff2",
+        "/cartao-diario/media/instrument-sans-latin-700-normal-5OI6FSZD.woff2",
+        "/cartao-diario/styles-5ERZRLFH.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "fontes-reserva",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/cartao-diario/media/atkinson-hyperlegible-latin-400-normal-4XQA3ZPE.woff",
+        "/cartao-diario/media/atkinson-hyperlegible-latin-700-normal-WK24QXLQ.woff",
+        "/cartao-diario/media/instrument-sans-latin-600-normal-NC3ZZHDN.woff",
+        "/cartao-diario/media/instrument-sans-latin-700-normal-Q6KAFFEN.woff"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/cartao-diario/chunk-2owfhtae.js": "b3f4662cb39764a9dec8490ad05ac6ff6d01290c",
+    "/cartao-diario/chunk-B1lNRhjU.js": "3ea9fc230754ce08fca6d6a4627a783d17aba4af",
+    "/cartao-diario/chunk-BSmaAVps.js": "c59488955d51dd9c0bfd93ddca295a1769277ecf",
+    "/cartao-diario/chunk-BbT2Wmlt.js": "e735e5d072359a3dbdb7d0d5c844515f50a4894d",
+    "/cartao-diario/chunk-BfqTFkV1.js": "d36ae8058b416d7713bac5eafdb61fedc0af260a",
+    "/cartao-diario/chunk-BhzK9D5r.js": "5b33c32566611857b3f675be012c572c33ac4e3e",
+    "/cartao-diario/chunk-C-v5ffGN.js": "db8e865b33ff58dd187a6c5ecc9b668825a79c9a",
+    "/cartao-diario/chunk-C3IRTq7K.js": "e8a71815b5063064879f20cbb08f8556536efac8",
+    "/cartao-diario/chunk-C3KryfkC.js": "92eec75b893df8c53f32f7f035188481e42fa8fc",
+    "/cartao-diario/chunk-CUY4WDmC.js": "250787059bb1b41a30194513dfaa9a6696e85e7d",
+    "/cartao-diario/chunk-Cix3V7ZA.js": "6278734d227a495f0ba79ea0718ac7d2e837bbb4",
+    "/cartao-diario/chunk-CqUCEAbg.js": "e39c167c956dc795b6e89a2edcaef8b931a6312e",
+    "/cartao-diario/chunk-CwQka_C7.js": "b086bb33f31a032fa6dba3c55f2feff2590c7154",
+    "/cartao-diario/chunk-DFJrW4Z7.js": "ecc60bbde8c992239066752167eb5722acf75926",
+    "/cartao-diario/chunk-DFSl3x-k.js": "18885a9f4b6aecddf3b9f384b88c41fef8f314d7",
+    "/cartao-diario/chunk-DhTxuX3i.js": "02a5d2d52e9ec952a3b832e8366da41b24777da4",
+    "/cartao-diario/chunk-DiHxgv1d.js": "8af814e8dc67d987bf4c091ace72ae8359dc68c9",
+    "/cartao-diario/chunk-DoktDpGc.js": "45c9138c556b954b01018ef0485f577c854756e0",
+    "/cartao-diario/chunk-DvB2krMk.js": "687e97d1ddac234889db4d55bf5a9e8ac04afc01",
+    "/cartao-diario/chunk-DxqKAYlM.js": "629e25636bba2dde8365f3dac2d4d4e974380d25",
+    "/cartao-diario/chunk-Dylv8d07.js": "011d7e053df2df1e8c03e6137453cc2a9d5f7141",
+    "/cartao-diario/chunk-f9zzvtI3.js": "5c2f5d532520b77ac16bbaf7d0bf58caaccb9630",
+    "/cartao-diario/favicon.ico": "ac40c7ea8e3306771ede43aa0e1c1b45802bfe1e",
+    "/cartao-diario/icons/apple-touch-icon.png": "9a9d98cf5eb4e8aa69f9f73838afcc5e336cdefa",
+    "/cartao-diario/icons/favicon.svg": "229c00ce1434e6697c4631bdc2650fac7c57cf01",
+    "/cartao-diario/icons/icon-192.png": "7c771f1c32b9cbbd5bb5da4dfe72266f51490de8",
+    "/cartao-diario/icons/icon-512.png": "bf98c9591e5137fe57f1a2614dd1439ca3f0eddb",
+    "/cartao-diario/icons/maskable-192.png": "284d5f29fb4261cdd6f807246a82945dbf83f7dd",
+    "/cartao-diario/icons/maskable-512.png": "9764e1f6fc39c9bf8dc41ca9ab0d7abccf91fefe",
+    "/cartao-diario/index.html": "247e30a3ddac90dfffbb01a82beed2b762cdc0fa",
+    "/cartao-diario/main-ZKKIMDNU.js": "af13c0bdd0eb9b4bd5e8ade09c0b52a6ab3f100b",
+    "/cartao-diario/manifest.webmanifest": "90b4623ff3ec4bf56d08b55d442be4f0cd6642a8",
+    "/cartao-diario/media/atkinson-hyperlegible-latin-400-normal-4XQA3ZPE.woff": "4cd4be9f52198d8e1100f7d262f11462bd38a19e",
+    "/cartao-diario/media/atkinson-hyperlegible-latin-400-normal-SPAYGEOD.woff2": "320109902245098d11af11f6322d30f76df50a36",
+    "/cartao-diario/media/atkinson-hyperlegible-latin-700-normal-FHYJOTYL.woff2": "05dadf003f276beb9db879f4e82d1914eecde416",
+    "/cartao-diario/media/atkinson-hyperlegible-latin-700-normal-WK24QXLQ.woff": "a69fe4e1b93254301987ff828acbf6669e46d87f",
+    "/cartao-diario/media/instrument-sans-latin-600-normal-4CHHBDS7.woff2": "62108f92f6cde4ccedc1082c493cd938c0e58471",
+    "/cartao-diario/media/instrument-sans-latin-600-normal-NC3ZZHDN.woff": "883ddc4157fba231294604bb4672664e161fc995",
+    "/cartao-diario/media/instrument-sans-latin-700-normal-5OI6FSZD.woff2": "2c44b4c6e51dc3fa306967a556705267dd7be7bf",
+    "/cartao-diario/media/instrument-sans-latin-700-normal-Q6KAFFEN.woff": "9a7c9e5b458d352a4934607797bb8a799737fee3",
+    "/cartao-diario/styles-5ERZRLFH.css": "9772b1bd4f6546545253311811c82e59ecac9f05"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}
