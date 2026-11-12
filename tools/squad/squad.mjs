@@ -211,6 +211,18 @@ async function rota() {
   }
 }
 
+// Modelo e esforço vêm do cabeçalho YAML do agente (model/effort); "inherit" ou ausente = padrão.
+function cabecalhoDoAgente(agente) {
+  const arquivo = new URL(`../../.claude/agents/${agente}.md`, import.meta.url);
+  if (!existsSync(arquivo)) return {};
+  const bloco = /^---\n([\s\S]*?)\n---/.exec(readFileSync(arquivo, 'utf8'))?.[1] ?? '';
+  const campo = (nome) => {
+    const v = new RegExp(`^${nome}:\\s*(\\S+)\\s*$`, 'm').exec(bloco)?.[1];
+    return v && v !== 'inherit' ? v : '';
+  };
+  return { modelo: campo('model'), esforco: campo('effort') };
+}
+
 function prompt() {
   const { AGENTE, MODO, NUMERO, ALVO, ETAPA, INSTRUCAO, RESULTADO } = env;
   const alvo = ALVO === 'pr' ? `o pull request #${NUMERO}` : `a issue #${NUMERO}`;
@@ -228,6 +240,9 @@ Ambiente:
   Use "bloqueado" só quando faltar uma decisão do humano sem a qual não dá para seguir; ponha as perguntas na lista.
   "mudancas" é só para o modo revisao, quando o PR precisa de ajustes antes do merge.`;
   saida('texto', texto);
+  const { modelo, esforco } = cabecalhoDoAgente(AGENTE);
+  saida('modelo', modelo);
+  saida('esforco', esforco);
 }
 
 async function posAgente() {

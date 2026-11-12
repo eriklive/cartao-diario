@@ -88,7 +88,8 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: >-
-            ${{ vars.SQUAD_MODEL && format('--model {0}', vars.SQUAD_MODEL) || '' }}
+            ${{ (steps.prompt.outputs.modelo || vars.SQUAD_MODEL) && format('--model {0}', steps.prompt.outputs.modelo || vars.SQUAD_MODEL) || '' }}
+            ${{ steps.prompt.outputs.esforco && format('--effort {0}', steps.prompt.outputs.esforco) || '' }}
             --max-turns ${{ steps.ferramentas.outputs.turnos }}
             --allowedTools "${{ steps.ferramentas.outputs.lista }}"
 

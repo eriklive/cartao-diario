@@ -88,7 +88,9 @@ Com a variável `SQUAD_MODO=manual`, depois de discovery e UX a issue ganha `squ
 
 4. Ligue: `gh variable set SQUAD_ATIVO --body true` e troque `execucao` para `"actions"` em `.claude/squad.json`.
 
-Variáveis opcionais: `SQUAD_MODEL` (modelo dos agentes no Actions), `SQUAD_PROJECT_FIELD` (se o campo não se chamar "Etapa").
+Modelo e esforço de cada agente ficam no cabeçalho do arquivo em `.claude/agents/` (`model`, `effort`): PM e CX usam `sonnet` com esforço `high`; Tech Lead e full stack herdam o modelo da sessão. O Actions lê o mesmo cabeçalho.
+
+Variáveis opcionais: `SQUAD_MODEL` (modelo no Actions para os agentes com `model: inherit`), `SQUAD_PROJECT_FIELD` (se o campo não se chamar "Etapa").
 
 ## Peças
 

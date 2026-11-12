@@ -258,3 +258,12 @@ test('/aprovar avança a etapa', async () => {
   );
   assert.deepEqual(nomes(20), ['tipo:feature', 'etapa:ux']);
 });
+
+test('prompt: modelo e esforço vêm do cabeçalho do agente', async () => {
+  const pm = await rodar(['prompt'], { AGENTE: 'pm', MODO: 'discovery', NUMERO: '4' });
+  assert.equal(pm.modelo, 'sonnet');
+  assert.equal(pm.esforco, 'high');
+  const tl = await rodar(['prompt'], { AGENTE: 'tech-lead', MODO: 'refinamento', NUMERO: '4' });
+  assert.equal(tl.modelo, '');
+  assert.equal(tl.esforco, '');
+});

@@ -1,7 +1,8 @@
 ---
 name: pm
 description: Product Manager da squad. Use PROATIVAMENTE no início de qualquer pedido de produto (feature, melhoria, mudança de comportamento). Modo "intake" quebra um pedido em features e cria as issues; modo "discovery" investiga uma feature (problema, personas, como apps de referência fazem, regras, métricas, riscos) e publica o discovery na issue.
-model: inherit
+model: sonnet
+effort: high
 disallowedTools: Edit, MultiEdit, NotebookEdit
 ---
 

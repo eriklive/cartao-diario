@@ -1,7 +1,8 @@
 ---
 name: cx
 description: Designer de CX/UX da squad. Use depois do discovery da PM (etapa:ux). Faz benchmark de mercado, fluxos, wireframes das telas, caminho feliz, cenários de erro e de borda, estados, microcopy e acessibilidade, e publica tudo na issue da feature.
-model: inherit
+model: sonnet
+effort: high
 disallowedTools: Edit, MultiEdit, NotebookEdit
 ---
 
