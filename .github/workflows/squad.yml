@@ -1,0 +1,87 @@
+name: Squad · roteador
+
+# Máquina de estados da squad agêntica. Os rótulos etapa:* são a fonte da verdade; o quadro
+# (GitHub Projects) espelha os rótulos, e o workflow squad-quadro.yml traz de volta para os
+# rótulos os cartões movidos à mão no quadro.
+#
+#   etapa:pedido       -> PM (intake): quebra o pedido em features
+#   etapa:discovery    -> PM (discovery)
+#   etapa:ux           -> CX (benchmark, fluxos, telas, erros)
+#   etapa:refinamento  -> Tech Lead: quebra em histórias
+#   etapa:pronto-dev   -> Full stack: implementa e abre PR com o rótulo "squad"
+#   PR + rótulo squad  -> Tech Lead (revisão)
+#   issue fechada      -> etapa:concluido; libera dependentes; fecha o pai quando todos os filhos fecham
+#
+# Comandos em comentários (só OWNER/MEMBER/COLLABORATOR): /aprovar, /refazer <texto>,
+# /pausar, /retomar; no PR: /corrigir <texto>, /revisar. Detalhes em docs/squad.md.
+#
+# Precisa de: secret SQUAD_GH_TOKEN (PAT; eventos criados com o GITHUB_TOKEN não disparam outros
+# workflows, e a cadeia de agentes depende disso), secret CLAUDE_CODE_OAUTH_TOKEN ou
+# ANTHROPIC_API_KEY, e a variável SQUAD_ATIVO=true. Opcionais: SQUAD_PROJECT_NUMBER, SQUAD_MODO.
+
+on:
+  issues:
+    types: [labeled, closed]
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  rota:
+    name: Decidir
+    runs-on: ubuntu-latest
+    # Corta cedo o que nunca interessa (comentários comuns, rótulos que não são da squad).
+    if: >-
+      (github.event_name == 'issues' && (github.event.action == 'closed' || startsWith(github.event.label.name, 'etapa:'))) ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'squad') ||
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/'))
+    concurrency:
+      group: squad-rota-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
+    outputs:
+      agente: ${{ steps.rota.outputs.agente }}
+      modo: ${{ steps.rota.outputs.modo }}
+      numero: ${{ steps.rota.outputs.numero }}
+      alvo: ${{ steps.rota.outputs.alvo }}
+      etapa: ${{ steps.rota.outputs.etapa }}
+      instrucao: ${{ steps.rota.outputs.instrucao }}
+      ref: ${{ steps.rota.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/squad
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: rota
+        run: node tools/squad/squad.mjs rota
+        env:
+          SQUAD_GH_TOKEN: ${{ secrets.SQUAD_GH_TOKEN }}
+          SQUAD_ATIVO: ${{ vars.SQUAD_ATIVO }}
+          SQUAD_PROJECT_NUMBER: ${{ vars.SQUAD_PROJECT_NUMBER }}
+          SQUAD_PROJECT_OWNER: ${{ vars.SQUAD_PROJECT_OWNER }}
+          SQUAD_PROJECT_FIELD: ${{ vars.SQUAD_PROJECT_FIELD }}
+
+  agente:
+    name: ${{ needs.rota.outputs.agente }} · ${{ needs.rota.outputs.modo }} · #${{ needs.rota.outputs.numero }}
+    needs: rota
+    if: needs.rota.outputs.agente != ''
+    uses: ./.github/workflows/squad-agente.yml
+    with:
+      agente: ${{ needs.rota.outputs.agente }}
+      modo: ${{ needs.rota.outputs.modo }}
+      numero: ${{ needs.rota.outputs.numero }}
+      alvo: ${{ needs.rota.outputs.alvo }}
+      etapa: ${{ needs.rota.outputs.etapa }}
+      instrucao: ${{ needs.rota.outputs.instrucao }}
+      ref: ${{ needs.rota.outputs.ref }}
+    secrets: inherit
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write

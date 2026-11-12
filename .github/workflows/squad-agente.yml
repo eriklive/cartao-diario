@@ -1,0 +1,100 @@
+name: Squad · agente
+
+# Roda um agente da squad (.claude/agents/<agente>.md) com o Claude Code e, no fim,
+# faz a transição de etapa. Chamado pelo roteador (squad.yml).
+
+on:
+  workflow_call:
+    inputs:
+      agente: { type: string, required: true }
+      modo: { type: string, required: true }
+      numero: { type: string, required: true }
+      alvo: { type: string, required: true } # issue | pr
+      etapa: { type: string, default: '' }
+      instrucao: { type: string, default: '' }
+      ref: { type: string, default: '' }
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  rodar:
+    name: Claude Code
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.agente == 'fullstack' && 90 || 45 }}
+    # Um agente por issue/PR de cada vez; os outros esperam na fila.
+    concurrency:
+      group: squad-agente-${{ inputs.numero }}
+      cancel-in-progress: false
+    env:
+      SQUAD_GH_TOKEN: ${{ secrets.SQUAD_GH_TOKEN }}
+      GH_TOKEN: ${{ secrets.SQUAD_GH_TOKEN }}
+      SQUAD_MODO: ${{ vars.SQUAD_MODO || 'auto' }}
+      AGENTE: ${{ inputs.agente }}
+      MODO: ${{ inputs.modo }}
+      NUMERO: ${{ inputs.numero }}
+      ALVO: ${{ inputs.alvo }}
+      ETAPA: ${{ inputs.etapa }}
+      INSTRUCAO: ${{ inputs.instrucao }}
+      RESULTADO: /tmp/squad-resultado.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O PAT faz o push e o PR do agente dispararem o CI e o roteador.
+          token: ${{ secrets.SQUAD_GH_TOKEN }}
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Identidade do git
+        run: |
+          git config user.name "squad-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - uses: pnpm/action-setup@v4
+        if: inputs.agente == 'fullstack' || inputs.agente == 'tech-lead'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: ${{ (inputs.agente == 'fullstack' || inputs.agente == 'tech-lead') && 'pnpm' || '' }}
+      - name: Dependências
+        if: inputs.agente == 'fullstack' || inputs.agente == 'tech-lead'
+        run: pnpm install --frozen-lockfile
+
+      - name: Montar o prompt
+        id: prompt
+        run: node tools/squad/squad.mjs prompt
+
+      # PM, CX e Tech Lead leem código e escrevem no GitHub; o full stack também edita, testa e faz push.
+      - name: Ferramentas permitidas
+        id: ferramentas
+        run: |
+          comum='Read,Write,Glob,Grep,LS,WebFetch,TodoWrite,Bash(gh:*),Bash(ls:*),Bash(cat:*),Bash(find:*),Bash(grep:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(mkdir:*)'
+          if [ "$AGENTE" = fullstack ]; then
+            echo "lista=$comum,Edit,MultiEdit,Bash(git:*),Bash(pnpm:*),Bash(npx:*),Bash(node:*),Bash(rm:*),Bash(mv:*),Bash(cp:*),Bash(sed:*)" >> "$GITHUB_OUTPUT"
+            echo "turnos=150" >> "$GITHUB_OUTPUT"
+          else
+            echo "lista=$comum,WebSearch,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(pnpm:*)" >> "$GITHUB_OUTPUT"
+            echo "turnos=60" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Agente ${{ inputs.agente }} (${{ inputs.modo }})
+        uses: anthropics/claude-code-action@v1
+        with:
+          prompt: ${{ steps.prompt.outputs.texto }}
+          github_token: ${{ secrets.SQUAD_GH_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: >-
+            ${{ vars.SQUAD_MODEL && format('--model {0}', vars.SQUAD_MODEL) || '' }}
+            --max-turns ${{ steps.ferramentas.outputs.turnos }}
+            --allowedTools "${{ steps.ferramentas.outputs.lista }}"
+
+      - name: Transição de etapa
+        run: node tools/squad/squad.mjs pos-agente
+
+      - name: Avisar falha
+        if: failure()
+        run: node tools/squad/squad.mjs falha

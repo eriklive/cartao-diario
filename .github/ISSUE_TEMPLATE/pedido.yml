@@ -1,0 +1,18 @@
+name: Pedido para a squad
+description: Descreva o que você quer. A PM quebra em features e a squad segue daí.
+title: '[Pedido] '
+labels: ['tipo:pedido', 'etapa:pedido']
+body:
+  - type: textarea
+    id: pedido
+    attributes:
+      label: O que você quer?
+      description: Do jeito que você diria em voz alta. O problema importa mais que a solução.
+      placeholder: Quero que a pessoa consiga ver um gráfico da intensidade dos impulsos na semana…
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto (opcional)
+      description: Por que agora, quem pediu, referências, prints, restrições.
