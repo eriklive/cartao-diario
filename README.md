@@ -42,6 +42,10 @@ Dentro do app:
 - `ui`: componentes da Identidade A · Névoa (tokens em `src/styles.scss`).
 - `features`: uma pasta por tela.
 
+## Squad agêntica
+
+Pedidos de produto passam por uma squad de agentes do Claude Code (PM, CX, Tech Lead e full stack) que trabalha por issues e por um quadro do GitHub. Como usar: [`docs/squad.md`](docs/squad.md). Regras para agentes: [`AGENTS.md`](AGENTS.md).
+
 ## Comandos
 
 ```sh

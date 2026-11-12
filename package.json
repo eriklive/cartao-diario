@@ -13,7 +13,8 @@
     "lint": "nx run-many -t lint typecheck",
     "e2e": "nx e2e web-e2e",
     "e2e:pages": "pnpm build:pages && E2E_BASE=${BASE_HREF:-/cartao-diario/} E2E_PAGES=1 nx e2e web-e2e --exclude-task-dependencies",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:squad": "node --test tools/squad/*.test.mjs"
   },
   "dependencies": {
     "@angular/common": "~22.1.0",

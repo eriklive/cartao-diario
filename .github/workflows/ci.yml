@@ -25,6 +25,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec nx run-many -t lint typecheck test build
+      - run: pnpm test:squad
 
   e2e:
     name: Testes ponta a ponta (Playwright)

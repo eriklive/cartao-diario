@@ -1,0 +1,38 @@
+name: Squad · quadro
+
+# O GitHub não avisa um workflow de repositório quando um cartão muda de coluna num Project
+# de usuário. Por isso, de tempos em tempos, este workflow compara o quadro com os rótulos:
+# se o cartão foi movido depois da última troca de rótulo, o rótulo segue o quadro (e o
+# roteador chama o agente da nova etapa); se não, o quadro segue o rótulo.
+# Para algo imediato, troque o rótulo etapa:* na issue em vez de mover o cartão.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: squad-quadro
+  cancel-in-progress: false
+
+jobs:
+  reconciliar:
+    name: Quadro -> rótulos
+    if: vars.SQUAD_PROJECT_NUMBER != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/squad
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/squad/squad.mjs reconciliar
+        env:
+          SQUAD_GH_TOKEN: ${{ secrets.SQUAD_GH_TOKEN }}
+          SQUAD_PROJECT_NUMBER: ${{ vars.SQUAD_PROJECT_NUMBER }}
+          SQUAD_PROJECT_OWNER: ${{ vars.SQUAD_PROJECT_OWNER }}
+          SQUAD_PROJECT_FIELD: ${{ vars.SQUAD_PROJECT_FIELD }}

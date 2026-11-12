@@ -1,0 +1,10 @@
+{
+  "$comentario": "execucao: 'local' roda a cadeia de agentes na sessão do Claude Code; 'actions' só cria as issues e deixa o GitHub Actions trabalhar. Troque para 'actions' depois de rodar tools/squad/setup.sh e cadastrar os secrets (docs/squad.md).",
+  "execucao": "local",
+  "repositorio": "eriklive/cartao-diario",
+  "branchPadrao": "master",
+  "quadro": {
+    "titulo": "Squad · Cartão Diário",
+    "campo": "Etapa"
+  }
+}
