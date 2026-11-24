@@ -9,7 +9,7 @@ export async function abrirNoDia(pagina: Page, caminho = './', agora = AGORA): P
   await pagina.goto(caminho);
 }
 
-/** Faz o primeiro acesso completo e para em Hoje. */
+/** Faz o primeiro acesso completo (mantendo os 3 alvos sugeridos) e para em Hoje. */
 export async function configurar(pagina: Page, alvos: string[] = [], nome = 'Ana'): Promise<void> {
   await abrirNoDia(pagina);
   await pagina.waitForURL('**/boas-vindas');
@@ -19,21 +19,22 @@ export async function configurar(pagina: Page, alvos: string[] = [], nome = 'Ana
     await pagina.getByLabel('Novo comportamento-alvo').fill(alvo);
     await pagina.getByRole('button', { name: 'Adicionar' }).click();
   }
-  await pagina.getByRole('button', { name: alvos.length ? 'Continuar' : 'Pular por enquanto' }).click();
+  await pagina.getByRole('button', { name: 'Continuar' }).click();
   await pagina.getByRole('button', { name: 'Começar' }).click();
   await pagina.waitForURL('**/hoje');
   await expect(pagina.getByRole('heading', { name: `Olá, ${nome}` })).toBeVisible();
 }
 
-/** Abre o formulário de um item na lista do dia aberta e responde. */
+/** Na lista do dia aberta, adiciona uma entrada para o alvo e volta à lista. */
 export async function responder(
   pagina: Page,
-  item: string,
+  alvo: string,
   r: { intensidade: number; seguiu?: boolean; uso?: string; habilidades?: [string, string][] },
 ): Promise<void> {
-  await pagina.getByRole('button', { name: `Marcar ${item}` }).click();
+  await pagina.getByRole('link', { name: 'Adicionar entrada' }).click();
+  await pagina.getByRole('button', { name: alvo, exact: true }).click();
   await pagina.getByRole('button', { name: String(r.intensidade), exact: true }).click();
-  if (r.seguiu !== undefined) await pagina.getByRole('button', { name: r.seguiu ? 'Sim' : 'Não', exact: true }).click();
+  if (r.intensidade > 0) await pagina.getByRole('button', { name: r.seguiu ? 'Sim' : 'Não', exact: true }).click();
   if (r.uso) await pagina.getByRole('button', { name: r.uso, exact: true }).click();
   for (const [modulo, habilidade] of r.habilidades ?? []) {
     await pagina.getByRole('button', { name: new RegExp(`^${modulo}`) }).click();

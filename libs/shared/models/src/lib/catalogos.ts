@@ -1,5 +1,5 @@
-/** Comportamentos-alvo ativos ao mesmo tempo, como no cartão de papel. */
-export const LIMITE_ALVOS = 7;
+/** Comportamentos-alvo ativos ao mesmo tempo (os 3 sugeridos + 7, como no cartão de papel). */
+export const LIMITE_ALVOS = 10;
 
 /** Quantos dias para trás ainda dá para preencher. */
 export const JANELA_EDICAO_DIAS = 6;
@@ -22,10 +22,14 @@ export const PROGRESSO_MAX = 3;
 export const CHAVES_IMPULSO = ['me-matar', 'me-ferir', 'usar-drogas'] as const;
 export type ChaveImpulso = (typeof CHAVES_IMPULSO)[number];
 
-export const IMPULSOS_FIXOS: readonly { chave: ChaveImpulso; nome: string }[] = [
-  { chave: 'me-matar', nome: 'Me matar' },
-  { chave: 'me-ferir', nome: 'Me ferir' },
-  { chave: 'usar-drogas', nome: 'Usar drogas' },
+/**
+ * Comportamentos-alvo sugeridos no primeiro acesso. A pessoa pode renomear,
+ * arquivar ou tirar. A `chave` marca o de "me matar", que liga o apoio.
+ */
+export const ALVOS_SUGERIDOS: readonly { chave: ChaveImpulso; nome: string }[] = [
+  { chave: 'me-matar', nome: 'Vontade de me matar' },
+  { chave: 'me-ferir', nome: 'Vontade de me ferir' },
+  { chave: 'usar-drogas', nome: 'Vontade de usar drogas' },
 ];
 
 /** Escala H (uso de habilidades), 0 a 7, com rótulo completo e curto. */

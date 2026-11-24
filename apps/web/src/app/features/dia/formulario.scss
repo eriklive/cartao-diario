@@ -193,3 +193,19 @@ fieldset.apagado {
   display: grid;
   grid-template-columns: 1fr 2fr;
 }
+
+.alvos {
+  grid-template-columns: 1fr;
+}
+
+.novo-alvo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cd-primaria);
+}
+
+.opcional {
+  font-weight: 400;
+  color: var(--cd-texto-suave);
+}

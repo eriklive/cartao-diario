@@ -10,16 +10,20 @@ import {
 } from './catalogos';
 import { DataLocalSchema, HorarioSchema, IdSchema, InstanteSchema, VersionadoSchema } from './comum';
 
+/**
+ * Hoje tudo é `alvo`. `impulso` só existe em dados antigos (os 3 itens fixos
+ * do cartão), que viram `alvo` na migração do banco e do backup.
+ */
 export const TipoComportamentoSchema = z.enum(['impulso', 'alvo']);
 export type TipoComportamento = z.infer<typeof TipoComportamentoSchema>;
 
 export const NomeComportamentoSchema = z.string().trim().min(1, 'Dê um nome').max(60, 'Use até 60 caracteres');
 
-/** Um item da lista do dia: impulso fixo do cartão ou comportamento-alvo da pessoa. */
+/** Comportamento-alvo da pessoa ("Vontade de me matar", "Gastar demais"...). */
 export const ComportamentoSchema = VersionadoSchema.extend({
   id: IdSchema,
   tipo: TipoComportamentoSchema,
-  /** Só nos impulsos fixos. */
+  /** Só nos sugeridos; `me-matar` liga o apoio em destaque. */
   chave: z.enum(CHAVES_IMPULSO).optional(),
   nome: NomeComportamentoSchema,
   ordem: z.int().min(0),
@@ -33,11 +37,12 @@ export type Comportamento = z.infer<typeof ComportamentoSchema>;
 export const HabilidadeIdSchema = z.string().regex(/^[a-z0-9-]+\.[a-z0-9-]+$/, 'Habilidade inválida');
 
 /**
- * Resposta de um comportamento num dia (I · A · H + habilidades).
- * A chave natural é `[data, comportamentoId]`: no máximo um por dia.
- * Item sem registro no dia conta como 0.
+ * Uma entrada do dia: um comportamento-alvo, a intensidade do impulso (I),
+ * se seguiu (A) e o uso de habilidades (H). O mesmo alvo pode ter várias
+ * entradas no mesmo dia. Alvo sem entrada no dia conta como 0.
  */
 export const RegistroSchema = VersionadoSchema.extend({
+  id: IdSchema,
   data: DataLocalSchema,
   comportamentoId: IdSchema,
   /** I: intensidade do impulso, 0 a 5. */

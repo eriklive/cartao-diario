@@ -4,7 +4,7 @@ import { configurar, verificarAcessibilidade } from './apoio';
 test('adicionar, renomear, arquivar e restaurar comportamentos-alvo', async ({ page }) => {
   await configurar(page, ['Gastar demais']);
   await page.goto('./ajustes/comportamentos');
-  await expect(page.getByText('Comportamentos-alvo · 1 de 7')).toBeVisible();
+  await expect(page.getByText('Comportamentos-alvo · 4 de 10')).toBeVisible();
   await verificarAcessibilidade(page);
 
   await page.getByRole('button', { name: 'Adicionar comportamento-alvo' }).click();
@@ -23,20 +23,23 @@ test('adicionar, renomear, arquivar e restaurar comportamentos-alvo', async ({ p
   await expect(page.getByRole('heading', { name: 'Arquivados' })).toBeVisible();
 
   await page.goto('./dia/2026-10-18');
-  await expect(page.getByRole('button', { name: 'Marcar Brigar com a família' })).toBeVisible();
+  await page.getByRole('link', { name: 'Adicionar entrada' }).click();
+  await expect(page.getByRole('button', { name: 'Brigar com a família', exact: true })).toBeVisible();
   await expect(page.getByText('Gastar demais')).toBeHidden();
 
+  await page.goto('./dia/2026-10-18');
   await page.getByRole('link', { name: 'Gerenciar' }).click();
   await page.getByRole('button', { name: 'Restaurar Gastar demais' }).click();
   await expect(page.getByText('“Gastar demais” voltou ao registro do dia.')).toBeVisible();
 });
 
-test('limite de 7 comportamentos-alvo ativos', async ({ page }) => {
+test('limite de 10 comportamentos-alvo ativos', async ({ page }) => {
   await configurar(page, ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7']);
   await page.goto('./ajustes/comportamentos');
-  await expect(page.getByText('Comportamentos-alvo · 7 de 7')).toBeVisible();
-  await expect(page.getByText('Você chegou ao limite de 7')).toBeVisible();
+  await expect(page.getByText('Comportamentos-alvo · 10 de 10')).toBeVisible();
+  await expect(page.getByText('Você chegou ao limite de 10')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Adicionar comportamento-alvo' })).toBeHidden();
   await page.goto('./dia/2026-10-18');
-  await expect(page.getByRole('link', { name: 'Novo comportamento-alvo' })).toBeHidden();
+  await page.getByRole('link', { name: 'Adicionar entrada' }).click();
+  await expect(page.getByRole('button', { name: 'Novo comportamento-alvo' })).toBeHidden();
 });

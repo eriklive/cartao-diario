@@ -3,7 +3,7 @@ import { InstanteSchema } from './comum';
 import { ComportamentoSchema, DiaSchema, FechamentoSchema, PerfilSchema, RegistroSchema } from './entidades';
 
 export const BACKUP_APP = 'cartao-diario';
-export const BACKUP_SCHEMA_VERSION = 1;
+export const BACKUP_SCHEMA_VERSION = 2;
 
 /** Tudo o que o app guarda. É o formato do backup e, no futuro, da sincronização. */
 export const DadosSchema = z.object({

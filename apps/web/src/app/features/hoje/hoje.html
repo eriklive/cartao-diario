@@ -19,7 +19,7 @@
       <div class="registro__topo">
         <h2 id="titulo-registro">Registro de hoje</h2>
         <span class="cd-ajuda"
-          >{{ marcadosHoje().length }} {{ marcadosHoje().length === 1 ? 'marcado' : 'marcados' }}</span
+          >{{ marcadosHoje().length }} {{ marcadosHoje().length === 1 ? 'entrada' : 'entradas' }}</span
         >
       </div>
       @if (marcadosHoje().length) {
@@ -34,11 +34,11 @@
             </li>
           }
         </ul>
-        <p class="cd-ajuda">Os demais contam como 0.</p>
+        <p class="cd-ajuda">Os outros comportamentos-alvo contam como 0.</p>
       } @else if (hojeConcluido()) {
-        <p class="cd-ajuda">Dia concluído sem nada marcado: tudo conta como 0.</p>
+        <p class="cd-ajuda">Dia concluído sem nenhuma entrada: tudo conta como 0.</p>
       } @else {
-        <p class="cd-ajuda">Nada marcado ainda. O que ficar desmarcado conta como 0.</p>
+        <p class="cd-ajuda">Nenhuma entrada ainda. O que não for registrado conta como 0.</p>
       }
       <a class="cd-botao cd-botao--primario" [routerLink]="['/dia', hoje()]">
         {{ marcadosHoje().length || hojeConcluido() ? 'Revisar registro do dia' : 'Abrir registro do dia' }}

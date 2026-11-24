@@ -63,6 +63,7 @@ describe('schemas', () => {
 
   it('valida as faixas de I e H', () => {
     const base = {
+      id: crypto.randomUUID(),
       data: '2026-10-18',
       comportamentoId: crypto.randomUUID(),
       intensidade: 3,

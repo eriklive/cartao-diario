@@ -2,12 +2,15 @@ import type { Comportamento, Dia, Registro } from '@cartao/shared/models';
 import {
   alvosAtivos,
   comportamentosDoPeriodo,
+  migrarImpulsosParaAlvos,
+  ordenarComportamentos,
   podeAdicionarAlvo,
   proximaOrdem,
   validarNomeComportamento,
   visiveisNoDia,
 } from './comportamentos';
 import {
+  consolidarPorComportamento,
   exigeApoio,
   normalizarResposta,
   podeEscolherHabilidades,
@@ -44,7 +47,16 @@ function comportamento(p: Partial<Comportamento> & Pick<Comportamento, 'nome'>):
 }
 
 function registro(p: Partial<Registro> & Pick<Registro, 'data' | 'comportamentoId'>): Registro {
-  return { intensidade: 2, seguiu: false, usoHabilidade: 0, habilidades: [], criadoEm: T, atualizadoEm: T, ...p };
+  return {
+    id: crypto.randomUUID(),
+    intensidade: 2,
+    seguiu: false,
+    usoHabilidade: 0,
+    habilidades: [],
+    criadoEm: T,
+    atualizadoEm: T,
+    ...p,
+  };
 }
 
 describe('regras do formulário', () => {
@@ -103,14 +115,21 @@ describe('comportamentos', () => {
     expect(visiveisNoDia(todos, '2026-10-16').map((c) => c.nome)).toContain('Isolar-me');
   });
 
+  it('migra os impulsos antigos para alvos no topo, mantendo a ordem', () => {
+    const migrados = migrarImpulsosParaAlvos(todos);
+    expect(migrados.every((c) => c.tipo === 'alvo')).toBe(true);
+    expect(ordenarComportamentos(migrados).map((c) => c.nome)).toEqual(ordenarComportamentos(todos).map((c) => c.nome));
+    expect(migrarImpulsosParaAlvos(migrados)).toEqual(migrados);
+  });
+
   it('mostra um arquivado só no dia em que ele tem resposta', () => {
     expect(visiveisNoDia(todos, '2026-10-05', new Set([arquivado.id])).map((c) => c.nome)).toContain('Brigar');
     expect(visiveisNoDia(todos, '2026-10-05').map((c) => c.nome)).not.toContain('Brigar');
   });
 
-  it('limita a 7 alvos ativos', () => {
-    expect(alvosAtivos(todos).map((c) => c.nome)).toEqual(['Gastar demais', 'Isolar-me']);
-    const sete = Array.from({ length: 7 }, (_, i) => comportamento({ nome: `A${i}`, ordem: i }));
+  it('limita a 10 alvos ativos (itens antigos do tipo impulso contam como alvo)', () => {
+    expect(alvosAtivos(todos).map((c) => c.nome)).toEqual(['Me matar', 'Me ferir', 'Gastar demais', 'Isolar-me']);
+    const sete = Array.from({ length: 10 }, (_, i) => comportamento({ nome: `A${i}`, ordem: i }));
     expect(podeAdicionarAlvo(sete)).toBe(false);
     expect(podeAdicionarAlvo(sete.slice(1))).toBe(true);
     expect(podeAdicionarAlvo([...sete.slice(1), { ...sete[0], arquivadoEm: '2026-10-10' }])).toBe(true);
@@ -226,5 +245,34 @@ describe('resumos', () => {
       '2026-10-05',
       '2026-10-12',
     ]);
+  });
+});
+
+describe('entradas do dia', () => {
+  it('junta várias entradas do mesmo alvo: maior I, seguiu se seguiu alguma vez, todas as habilidades', () => {
+    const id = crypto.randomUUID();
+    const outro = crypto.randomUUID();
+    const data = '2026-10-18';
+    const r = consolidarPorComportamento([
+      registro({
+        data,
+        comportamentoId: id,
+        intensidade: 2,
+        seguiu: true,
+        usoHabilidade: 5,
+        habilidades: ['tolerancia.tip'],
+      }),
+      registro({ data, comportamentoId: id, intensidade: 4, seguiu: false, usoHabilidade: 1 }),
+      registro({ data, comportamentoId: id, intensidade: 5, removidoEm: T }),
+      registro({ data, comportamentoId: outro, intensidade: 1 }),
+    ]);
+    expect(r.get(id)).toEqual({
+      intensidade: 4,
+      seguiu: true,
+      usoHabilidade: 5,
+      habilidades: ['tolerancia.tip'],
+      vezes: 2,
+    });
+    expect(r.get(outro)?.vezes).toBe(1);
   });
 });

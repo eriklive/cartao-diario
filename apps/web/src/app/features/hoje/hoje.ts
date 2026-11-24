@@ -74,7 +74,7 @@ export class HojePagina {
         const n = r.habilidades.length;
         return [
           {
-            id: c.id,
+            id: r.id,
             nome: c.nome,
             intensidade: r.intensidade,
             detalhe: n ? `${n} ${n === 1 ? 'habilidade' : 'habilidades'}` : '',
@@ -83,7 +83,7 @@ export class HojePagina {
       })
       .sort((a, b) => b.intensidade - a.intensidade);
   });
-  /** "Me matar" com intensidade alta hoje: o apoio sobe para o topo. */
+  /** "Vontade de me matar" com intensidade alta hoje: o apoio sobe para o topo. */
   protected readonly apoioEmDestaque = computed(() =>
     registrosDoDia(this.store.indice(), this.hoje()).some((r) => {
       const c = this.store.comportamento(r.comportamentoId);

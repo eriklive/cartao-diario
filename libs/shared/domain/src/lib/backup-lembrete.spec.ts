@@ -10,9 +10,9 @@ const dados: Dados = {
   comportamentos: [
     {
       id: idFerir,
-      tipo: 'impulso',
+      tipo: 'alvo',
       chave: 'me-ferir',
-      nome: 'Me ferir',
+      nome: 'Vontade de me ferir',
       ordem: 1,
       ativoDesde: '2026-10-01',
       criadoEm: T,
@@ -22,6 +22,7 @@ const dados: Dados = {
   dias: [],
   registros: [
     {
+      id: crypto.randomUUID(),
       data: '2026-10-18',
       comportamentoId: idFerir,
       intensidade: 0,
@@ -49,6 +50,46 @@ describe('backup', () => {
       usoHabilidade: 0,
       habilidades: [],
     });
+  });
+
+  it('migra backup v1: registros ganham id e os impulsos fixos viram alvos no topo', () => {
+    const idMatar = crypto.randomUUID();
+    const idAlvo = crypto.randomUUID();
+    const base = { ativoDesde: '2026-10-01', criadoEm: T, atualizadoEm: T };
+    const v1 = {
+      app: 'cartao-diario',
+      schemaVersion: 1,
+      exportadoEm: T,
+      dados: {
+        perfil: null,
+        comportamentos: [
+          { ...base, id: idAlvo, tipo: 'alvo', nome: 'Gastar demais', ordem: 0 },
+          { ...base, id: idMatar, tipo: 'impulso', chave: 'me-matar', nome: 'Me matar', ordem: 0 },
+        ],
+        dias: [],
+        registros: [
+          {
+            data: '2026-10-18',
+            comportamentoId: idMatar,
+            intensidade: 2,
+            seguiu: false,
+            usoHabilidade: 0,
+            habilidades: [],
+            criadoEm: T,
+            atualizadoEm: T,
+          },
+        ],
+        fechamentos: [],
+      },
+    };
+    const lido = lerBackup(JSON.stringify(v1));
+    expect(lido.ok).toBe(true);
+    if (!lido.ok) return;
+    expect(lido.backup.schemaVersion).toBe(BACKUP_SCHEMA_VERSION);
+    const porId = new Map(lido.backup.dados.comportamentos.map((c) => [c.id, c]));
+    expect(porId.get(idMatar)).toMatchObject({ tipo: 'alvo', chave: 'me-matar', ordem: 0 });
+    expect(porId.get(idAlvo)).toMatchObject({ tipo: 'alvo', ordem: 1 });
+    expect(lido.backup.dados.registros[0].id).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('recusa arquivos que não são backup', () => {

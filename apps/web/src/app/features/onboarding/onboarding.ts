@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { IMPULSOS_FIXOS, LIMITE_ALVOS, PerfilSchema, type Horario } from '@cartao/shared/models';
+import { ALVOS_SUGERIDOS, LIMITE_ALVOS, PerfilSchema, type Horario } from '@cartao/shared/models';
 import { CartaoStore } from '../../core/dados/cartao-store';
 import { Armazenamento } from '../../core/plataforma/armazenamento';
 import { Backups } from '../../core/plataforma/backups';
@@ -26,13 +26,13 @@ export class OnboardingPagina {
   private readonly backups = inject(Backups);
   private readonly calendario = inject(LembreteCalendario);
 
-  protected readonly impulsos = IMPULSOS_FIXOS;
   protected readonly limite = LIMITE_ALVOS;
   protected readonly horarios = HORARIOS.map((valor) => ({ valor, rotulo: `${Number(valor.slice(0, 2))}h` }));
 
   protected readonly passo = signal(0);
   protected readonly nome = signal('');
-  protected readonly alvos = signal<string[]>([]);
+  /** Começa com os sugeridos; a pessoa pode tirar, renomear depois em Ajustes e adicionar outros. */
+  protected readonly alvos = signal<string[]>(ALVOS_SUGERIDOS.map((s) => s.nome));
   protected readonly rascunho = signal('');
   protected readonly erroAlvo = signal('');
   protected readonly lembreteAtivo = signal(true);
@@ -56,8 +56,7 @@ export class OnboardingPagina {
     evento?.preventDefault();
     const nome = this.rascunho().trim();
     if (!nome) return;
-    const todos = [...this.impulsos.map((i) => i.nome), ...this.alvos()];
-    if (todos.some((t) => t.toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR'))) {
+    if (this.alvos().some((t) => t.toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR'))) {
       this.erroAlvo.set('Esse comportamento já está na lista.');
       return;
     }

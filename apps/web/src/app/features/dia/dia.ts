@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import type { Comportamento } from '@cartao/shared/models';
+import type { Registro } from '@cartao/shared/models';
 import {
   NOMES_DIAS,
   diaDaSemana,
@@ -11,7 +11,6 @@ import {
   resumirResposta,
   somarDias,
   tituloDoDia,
-  visiveisNoDia,
 } from '@cartao/shared/domain';
 import { CartaoStore } from '../../core/dados/cartao-store';
 import { Avisos } from '../../ui/avisos';
@@ -19,8 +18,8 @@ import { Dialogo } from '../../ui/dialogo';
 import { Icone } from '../../ui/icone';
 
 interface Linha {
-  comportamento: Comportamento;
-  marcado: boolean;
+  registro: Registro;
+  nome: string;
   resumo: string;
 }
 
@@ -50,64 +49,48 @@ export class DiaPagina {
   protected readonly ehPassado = computed(() => this.data() < this.hoje());
   protected readonly podeVoltar = computed(() => podeEditarDia(somarDias(this.data(), -1), this.hoje()));
   protected readonly podeAvancar = computed(() => this.data() < this.hoje());
-  protected readonly podeAdicionarAlvo = this.store.podeAdicionarAlvo;
 
-  private readonly registros = computed(
-    () => new Map(registrosDoDia(this.store.indice(), this.data()).map((r) => [r.comportamentoId, r])),
-  );
-
-  protected readonly grupos = computed(() => {
-    const registros = this.registros();
-    const linhas: Linha[] = visiveisNoDia(this.store.comportamentos(), this.data(), new Set(registros.keys())).map(
-      (c) => {
-        const r = registros.get(c.id);
-        return { comportamento: c, marcado: !!r, resumo: resumirResposta(r) };
-      },
-    );
-    return [
-      { titulo: 'Impulsos', alvos: false, linhas: linhas.filter((l) => l.comportamento.tipo === 'impulso') },
-      { titulo: 'Comportamentos-alvo', alvos: true, linhas: linhas.filter((l) => l.comportamento.tipo === 'alvo') },
-    ];
+  /** Entradas do dia, na ordem em que foram feitas. */
+  protected readonly entradas = computed(() => {
+    const porId = new Map(this.store.comportamentos().map((c) => [c.id, c]));
+    return [...registrosDoDia(this.store.indice(), this.data())]
+      .sort((a, b) => a.criadoEm.localeCompare(b.criadoEm))
+      .map((r) => ({
+        registro: r,
+        nome: porId.get(r.comportamentoId)?.nome ?? 'Comportamento removido',
+        resumo: resumirResposta(r),
+      }));
   });
-  protected readonly marcados = computed(() => this.registros().size);
+  protected readonly quantidade = computed(() => this.entradas().length);
 
   /**
-   * "Nada disso aconteceu": escolha explícita de que nada foi marcado. Começa
-   * escolhida se o dia já foi concluído sem nenhum item; volta ao trocar de dia.
+   * "Nada disso aconteceu": escolha explícita de que não houve nenhuma entrada.
+   * Começa escolhida se o dia já foi concluído sem entradas; volta ao trocar de dia.
    */
   protected readonly nadaAconteceu = linkedSignal(
-    () => this.store.indice().diasConcluidos.has(this.data()) && this.marcados() === 0,
+    () => this.store.indice().diasConcluidos.has(this.data()) && this.quantidade() === 0,
   );
-  /** Só dá para concluir depois de marcar algo ou escolher "Nada disso aconteceu". */
-  protected readonly podeConcluir = computed(() => this.marcados() > 0 || this.nadaAconteceu());
+  /** Só dá para concluir depois de adicionar uma entrada ou escolher "Nada disso aconteceu". */
+  protected readonly podeConcluir = computed(() => this.quantidade() > 0 || this.nadaAconteceu());
 
-  protected readonly desmarcando = signal<Comportamento | null>(null);
+  protected readonly removendo = signal<Linha | null>(null);
   protected readonly concluindo = signal(false);
 
   irPara(delta: number): void {
     void this.router.navigate(['/dia', somarDias(this.data(), delta)], { replaceUrl: true });
   }
 
-  abrir(c: Comportamento): void {
-    void this.router.navigate(['/dia', this.data(), 'item', c.id]);
-  }
-
   alternarNada(): void {
-    if (this.marcados() > 0) return;
+    if (this.quantidade() > 0) return;
     this.nadaAconteceu.update((v) => !v);
   }
 
-  alternar(linha: Linha): void {
-    if (linha.marcado) this.desmarcando.set(linha.comportamento);
-    else this.abrir(linha.comportamento);
-  }
-
-  async confirmarDesmarcar(): Promise<void> {
-    const c = this.desmarcando();
-    this.desmarcando.set(null);
-    if (!c) return;
+  async confirmarRemocao(): Promise<void> {
+    const linha = this.removendo();
+    this.removendo.set(null);
+    if (!linha) return;
     try {
-      await this.store.limparResposta(this.data(), c.id);
+      await this.store.removerEntrada(linha.registro.id);
     } catch (erro) {
       this.avisos.falha(erro);
     }

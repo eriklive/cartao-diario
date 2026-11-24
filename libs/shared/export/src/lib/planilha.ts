@@ -43,14 +43,23 @@ function abaDiario(modelo: ModeloExportacao): Aba {
       { width: 17 },
     ],
     data: [
-      cabecalho(['Data', 'Dia', 'Semana', 'Item', 'Tipo', 'Impulso (0–5)', 'Seguiu (S/N)', 'Habilidades (0–7)']),
+      cabecalho([
+        'Data',
+        'Dia',
+        'Semana',
+        'Comportamento-alvo',
+        'Vezes no dia',
+        'Impulso (0–5)',
+        'Seguiu (S/N)',
+        'Habilidades (0–7)',
+      ]),
       ...modelo.linhas.map(
         (l): Row => [
           data(l.data),
           l.dia,
           l.semanaIso,
           l.item,
-          l.tipo === 'impulso' ? 'Impulso' : 'Comportamento-alvo',
+          l.vezes,
           l.destaque ? { value: l.intensidade, ...DESTAQUE } : l.intensidade,
           l.seguiu,
           l.usoHabilidade,
@@ -66,7 +75,7 @@ function abaHabilidades(modelo: ModeloExportacao): Aba {
     stickyRowsCount: 1,
     columns: [{ width: 12 }, { width: 6 }, { width: 28 }, { width: 26 }, { width: 32 }, { width: 17 }],
     data: [
-      cabecalho(['Data', 'Dia', 'Item', 'Módulo', 'Habilidade', 'Habilidades (0–7)']),
+      cabecalho(['Data', 'Dia', 'Comportamento-alvo', 'Módulo', 'Habilidade', 'Habilidades (0–7)']),
       ...modelo.linhas.flatMap((l) =>
         l.habilidades.map((id): Row => {
           const h = rotuloHabilidadeComModulo(id);
@@ -126,8 +135,12 @@ function abaLegenda(modelo: ModeloExportacao): Aba {
     [`Gerado em ${formatarDataNumerica(modelo.hoje)}`],
     [],
     cabecalho(['Campo', 'Significado']),
-    ['Impulso (I)', 'Intensidade do impulso, de 0 (nenhum) a 5 (muito intenso). Item não marcado no dia conta como 0.'],
-    ['Seguiu (A)', 'S = seguiu o impulso, N = não seguiu.'],
+    [
+      'Impulso (I)',
+      'Intensidade do impulso, de 0 (nenhum) a 5 (muito intenso). Com várias entradas no dia, vale a maior. Alvo sem entrada no dia conta como 0.',
+    ],
+    ['Seguiu (A)', 'S = seguiu o impulso pelo menos uma vez no dia, N = não seguiu.'],
+    ['Vezes no dia', 'Quantas entradas o comportamento-alvo teve naquele dia.'],
     ['Habilidades (H)', 'Nível de uso de habilidades, de 0 a 7 (abaixo).'],
     ['Destaque', `Impulso ${LIMIAR_DESTAQUE} ou mais.`],
     [],

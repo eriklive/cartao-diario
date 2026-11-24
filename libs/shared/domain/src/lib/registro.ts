@@ -3,6 +3,7 @@ import {
   LIMIAR_APOIO,
   USO_MINIMO_PARA_HABILIDADES,
   type Comportamento,
+  type Registro,
   type RespostaRegistro,
 } from '@cartao/shared/models';
 
@@ -35,7 +36,7 @@ export function normalizarResposta(r: RespostaRegistro): RespostaRegistro {
   };
 }
 
-/** Apoio em destaque: "Me matar" com intensidade alta. */
+/** Apoio em destaque: "Vontade de me matar" com intensidade alta. */
 export function exigeApoio(r: Pick<RespostaRegistro, 'intensidade'>, c: Pick<Comportamento, 'chave'>): boolean {
   return c.chave === 'me-matar' && r.intensidade >= LIMIAR_APOIO;
 }
@@ -48,7 +49,43 @@ export function rotuloUsoHabilidade(valor: number): string {
 export function resumirResposta(r: RespostaRegistro | undefined): string {
   if (!r) return 'Não registrado · conta como 0';
   if (r.intensidade === 0) return 'Impulso 0 · sem impulso';
+  if (r.usoHabilidade === 0 && !r.habilidades.length)
+    return `Impulso ${r.intensidade} · ${r.seguiu ? 'seguiu' : 'não seguiu'}`;
   const n = r.habilidades.length;
   const habilidades = n ? `${n} ${n === 1 ? 'habilidade' : 'habilidades'}` : rotuloUsoHabilidade(r.usoHabilidade);
   return `Impulso ${r.intensidade} · ${r.seguiu ? 'seguiu' : 'não seguiu'} · ${habilidades}`;
+}
+
+/** Todas as entradas de um alvo num dia, resumidas numa célula do cartão semanal. */
+export interface Consolidado extends RespostaRegistro {
+  /** Quantas entradas o alvo teve no dia. */
+  vezes: number;
+}
+
+/**
+ * Junta as entradas de um dia por comportamento-alvo: maior intensidade,
+ * "seguiu" se seguiu alguma vez, maior uso de habilidades e todas as habilidades.
+ */
+export function consolidarPorComportamento(registros: readonly Registro[]): Map<string, Consolidado> {
+  const porId = new Map<string, Consolidado>();
+  for (const r of registros) {
+    if (r.removidoEm) continue;
+    const atual = porId.get(r.comportamentoId);
+    if (!atual) {
+      porId.set(r.comportamentoId, {
+        intensidade: r.intensidade,
+        seguiu: r.seguiu,
+        usoHabilidade: r.usoHabilidade,
+        habilidades: [...r.habilidades],
+        vezes: 1,
+      });
+      continue;
+    }
+    atual.intensidade = Math.max(atual.intensidade, r.intensidade);
+    atual.seguiu ||= r.seguiu;
+    atual.usoHabilidade = Math.max(atual.usoHabilidade, r.usoHabilidade);
+    atual.habilidades = [...new Set([...atual.habilidades, ...r.habilidades])];
+    atual.vezes += 1;
+  }
+  return porId;
 }

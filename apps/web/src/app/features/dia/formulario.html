@@ -11,37 +11,64 @@
       </button>
       <span class="cd-subtitulo">{{ rotuloDia() }}</span>
     </div>
-    @if (ehNovo()) {
-      <div class="novo-nome">
-        <label for="novo-nome" class="cd-rotulo-secao">Novo comportamento-alvo</label>
-        <input
-          id="novo-nome"
-          class="cd-campo campo-nome"
-          type="text"
-          maxlength="60"
-          placeholder="Como você chama esse comportamento?"
-          [value]="nomeNovo()"
-          [attr.aria-invalid]="!!erroNome()"
-          [attr.aria-describedby]="erroNome() ? 'erro-nome' : 'ajuda-nome'"
-          (input)="nomeNovo.set($any($event.target).value); erroNome.set('')"
-        />
-        @if (erroNome()) {
-          <span id="erro-nome" class="cd-erro-campo">{{ erroNome() }}</span>
-        } @else {
-          <span id="ajuda-nome" class="cd-ajuda">Ele fica salvo e aparece na lista a partir deste dia.</span>
-        }
-      </div>
-    } @else {
-      <div class="titulo">
-        <span class="cd-rotulo-secao">{{
-          comportamento()?.tipo === 'impulso' ? 'Impulsos' : 'Comportamentos-alvo'
-        }}</span>
-        <h1>{{ comportamento()?.nome }}</h1>
-      </div>
-    }
+    <div class="titulo">
+      <h1>{{ ehNova() ? 'Nova entrada' : 'Editar entrada' }}</h1>
+    </div>
   </header>
 
   <div class="cd-conteudo cd-conteudo--com-rodape corpo">
+    <fieldset>
+      <legend class="cd-legenda">Qual comportamento-alvo?</legend>
+      <div class="cd-grade alvos">
+        @for (c of alvos(); track c.id) {
+          <button
+            type="button"
+            class="cd-opcao cartao-opcao"
+            [attr.aria-pressed]="alvoId() === c.id"
+            (click)="escolherAlvo(c.id)"
+          >
+            {{ c.nome }}
+          </button>
+        }
+        @if (podeCriarAlvo()) {
+          <button
+            type="button"
+            class="cd-opcao cartao-opcao novo-alvo"
+            [attr.aria-pressed]="criandoAlvo()"
+            (click)="escolherAlvo(NOVO)"
+          >
+            <cd-icone nome="mais" [tamanho]="18" [espessura]="2.5" />
+            Novo comportamento-alvo
+          </button>
+        }
+      </div>
+      @if (criandoAlvo()) {
+        <div class="novo-nome">
+          <label for="novo-nome" class="cd-rotulo-campo">Nome do novo comportamento-alvo</label>
+          <input
+            id="novo-nome"
+            class="cd-campo campo-nome"
+            type="text"
+            maxlength="60"
+            placeholder="Ex.: vontade de me isolar"
+            [value]="nomeNovo()"
+            [attr.aria-invalid]="!!erroNome()"
+            [attr.aria-describedby]="erroNome() ? 'erro-nome' : 'ajuda-nome'"
+            (input)="nomeNovo.set($any($event.target).value); erroNome.set('')"
+          />
+          @if (erroNome()) {
+            <span id="erro-nome" class="cd-erro-campo">{{ erroNome() }}</span>
+          } @else {
+            <span id="ajuda-nome" class="cd-ajuda">Ele fica salvo para as próximas entradas.</span>
+          }
+        </div>
+      } @else if (!podeCriarAlvo()) {
+        <p class="cd-ajuda dica">
+          Você chegou ao limite de {{ limite }} comportamentos-alvo. Arquive um em Ajustes para criar outro.
+        </p>
+      }
+    </fieldset>
+
     <fieldset>
       <legend class="cd-legenda">Qual foi a intensidade do impulso?</legend>
       <div class="cd-grade intensidades">
@@ -49,7 +76,7 @@
           <button
             type="button"
             class="cd-opcao intensidade"
-            [attr.aria-pressed]="resposta().intensidade === o.v"
+            [attr.aria-pressed]="intensidade() === o.v"
             [style.--fundo]="o.cor.fundo"
             [style.--texto]="o.cor.texto"
             (click)="escolherIntensidade(o.v)"
@@ -71,16 +98,16 @@
           <button
             type="button"
             class="cd-opcao grande"
-            [attr.aria-pressed]="resposta().seguiu"
-            (click)="escolherSeguiu(true)"
+            [attr.aria-pressed]="seguiu() === true"
+            (click)="seguiu.set(true)"
           >
             Sim
           </button>
           <button
             type="button"
             class="cd-opcao grande"
-            [attr.aria-pressed]="!resposta().seguiu"
-            (click)="escolherSeguiu(false)"
+            [attr.aria-pressed]="seguiu() === false"
+            (click)="seguiu.set(false)"
           >
             Não
           </button>
@@ -89,7 +116,7 @@
     }
 
     <fieldset [disabled]="!temImpulso()" [class.apagado]="!temImpulso()">
-      <legend class="cd-legenda">Uso de habilidades</legend>
+      <legend class="cd-legenda">Uso de habilidades <span class="opcional">(opcional)</span></legend>
       @if (!temImpulso()) {
         <p class="cd-ajuda dica">Disponível quando o impulso for maior que 0.</p>
       }
@@ -98,7 +125,7 @@
           <button
             type="button"
             class="cd-opcao cartao-opcao"
-            [attr.aria-pressed]="temImpulso() && resposta().usoHabilidade === e.valor"
+            [attr.aria-pressed]="temImpulso() && usoHabilidade() === e.valor"
             (click)="escolherUso(e.valor)"
           >
             {{ e.rotulo }}
@@ -143,7 +170,7 @@
   <div class="cd-rodape">
     <div class="cd-rodape__interno acoes">
       <button type="button" class="cd-botao" (click)="acaoEsquerda()">
-        {{ temResposta() ? 'Limpar' : 'Cancelar' }}
+        {{ ehNova() ? 'Cancelar' : 'Excluir' }}
       </button>
       <button
         type="button"
@@ -157,13 +184,13 @@
   </div>
 
   <cd-dialogo
-    [aberto]="confirmandoLimpeza()"
-    [titulo]="'Limpar ' + (comportamento()?.nome ?? '') + '?'"
-    mensagem="As respostas deste comportamento serão apagadas e ele volta a contar como 0 neste dia."
+    [aberto]="confirmandoExclusao()"
+    titulo="Excluir esta entrada?"
+    mensagem="Ela será apagada. As outras entradas do dia continuam."
     rotuloCancelar="Manter"
-    rotuloConfirmar="Limpar"
+    rotuloConfirmar="Excluir"
     [perigoso]="true"
-    (cancelar)="confirmandoLimpeza.set(false)"
-    (confirmar)="limpar()"
+    (cancelar)="confirmandoExclusao.set(false)"
+    (confirmar)="excluir()"
   />
 </main>

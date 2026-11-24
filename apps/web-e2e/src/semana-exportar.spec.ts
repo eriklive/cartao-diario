@@ -5,7 +5,7 @@ import { configurar, responder, verificarAcessibilidade } from './apoio';
 async function preencherSemana(page: Page) {
   await configurar(page, ['Gastar demais']);
   await page.goto('./dia/2026-10-14');
-  await responder(page, 'Me ferir', {
+  await responder(page, 'Vontade de me ferir', {
     intensidade: 4,
     uso: 'Usei automaticamente, ajudou',
     habilidades: [['Atenção Plena', 'Mente Sábia']],
@@ -19,7 +19,9 @@ test('fechamento semanal salva sozinho e depois fecha a semana', async ({ page }
   await page.getByRole('link', { name: 'Voltar ao início' }).click();
   await page.getByRole('link', { name: /Fechar a semana/ }).click();
   await expect(page.getByText('12 a 18 out · esta semana')).toBeVisible();
-  await expect(page.getByText(/2 de 5 dias preenchidos · maior impulso: Me ferir, 4 \(quarta\)/)).toBeVisible();
+  await expect(
+    page.getByText(/2 de 5 dias preenchidos · maior impulso: Vontade de me ferir, 4 \(quarta\)/),
+  ).toBeVisible();
   await verificarAcessibilidade(page);
 
   await page.getByLabel('Tarefa de casa da semana').fill('Praticar TIP');

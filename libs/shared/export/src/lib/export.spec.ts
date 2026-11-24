@@ -26,7 +26,16 @@ const alvo = comportamento({ nome: 'Gastar demais', ordem: 0 });
 const arquivado = comportamento({ nome: 'Brigar', ordem: 1, arquivadoEm: '2026-10-09' });
 
 function registro(p: Partial<Registro> & Pick<Registro, 'data' | 'comportamentoId'>): Registro {
-  return { intensidade: 1, seguiu: false, usoHabilidade: 0, habilidades: [], criadoEm: T, atualizadoEm: T, ...p };
+  return {
+    id: crypto.randomUUID(),
+    intensidade: 1,
+    seguiu: false,
+    usoHabilidade: 0,
+    habilidades: [],
+    criadoEm: T,
+    atualizadoEm: T,
+    ...p,
+  };
 }
 
 const dados: Dados = {
@@ -94,8 +103,8 @@ describe('montarExportacao', () => {
   it('preenche zeros nos dias preenchidos e deixa vazio o resto', () => {
     const semana = modelo.semanas[1];
     const [seg, ter, qua, qui] = semana.linhas;
-    expect(seg.celulas[1]).toEqual({ i: 3, a: 'N', h: 5, destaque: true });
-    expect(seg.celulas[0]).toEqual({ i: 0, a: 'N', h: 0, destaque: false });
+    expect(seg.celulas[1]).toEqual({ i: 3, a: 'N', h: 5, vezes: 1, destaque: true });
+    expect(seg.celulas[0]).toEqual({ i: 0, a: 'N', h: 0, vezes: 0, destaque: false });
     expect(ter.preenchido).toBe(true);
     expect(ter.celulas.every((c) => c?.i === 0)).toBe(true);
     expect(qua.celulas[2]).toMatchObject({ i: 1, a: 'S' });

@@ -61,14 +61,14 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/dia/dia').then((m) => m.DiaPagina),
       },
       {
-        path: 'dia/:data/item/:id',
-        title: 'Registro do dia',
+        path: 'dia/:data/entrada',
+        title: 'Nova entrada',
         canActivate: [exigeDiaEditavel],
         loadComponent: () => import('./features/dia/formulario').then((m) => m.FormularioPagina),
       },
       {
-        path: 'dia/:data/novo',
-        title: 'Novo comportamento-alvo',
+        path: 'dia/:data/entrada/:id',
+        title: 'Editar entrada',
         canActivate: [exigeDiaEditavel],
         loadComponent: () => import('./features/dia/formulario').then((m) => m.FormularioPagina),
       },

@@ -32,7 +32,7 @@ export class AjustesPagina {
   protected readonly perfil = this.store.perfil;
   protected readonly resumoComportamentos = computed(() => {
     const n = this.store.alvosAtivos().length;
-    return `${this.store.impulsos().length} impulsos · ${n} ${n === 1 ? 'comportamento-alvo' : 'comportamentos-alvo'}`;
+    return `${n} ${n === 1 ? 'comportamento-alvo' : 'comportamentos-alvo'}`;
   });
   protected readonly ultimoBackup = computed(() => {
     const em = this.perfil()?.ultimoBackupEm;

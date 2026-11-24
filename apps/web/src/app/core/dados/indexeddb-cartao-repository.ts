@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable, type Table } from 'dexie';
 import type { Comportamento, Dados, Dia, Fechamento, Perfil, Registro } from '@cartao/shared/models';
+import { migrarImpulsosParaAlvos } from '@cartao/shared/domain';
 import { CartaoRepository, type Mudancas, type Observavel } from './cartao-repository';
 
 const CHAVE_PERFIL = 'perfil';
@@ -8,7 +9,8 @@ export class BancoCartao extends Dexie {
   perfil!: Table<Perfil, string>;
   comportamentos!: EntityTable<Comportamento, 'id'>;
   dias!: EntityTable<Dia, 'data'>;
-  registros!: Table<Registro, [string, string]>;
+  /** Entradas do dia (`Registro`), várias por alvo: chave `id`. */
+  registros!: EntityTable<Registro, 'id'>;
   fechamentos!: EntityTable<Fechamento, 'semanaInicio'>;
 
   constructor(nome = 'cartao-diario') {
@@ -21,6 +23,19 @@ export class BancoCartao extends Dexie {
       registros: '[data+comportamentoId], data, comportamentoId',
       fechamentos: 'semanaInicio',
     });
+    // v2: várias entradas por dia. A chave muda de [data+comportamentoId] para `id`,
+    // o que o IndexedDB não faz no lugar: copia para `entradas` e apaga a antiga na v3.
+    // Os impulsos fixos viram comportamentos-alvo.
+    this.version(2)
+      .stores({ entradas: 'id, data, comportamentoId' })
+      .upgrade(async (tx) => {
+        const antigos = await tx.table<Omit<Registro, 'id'>>('registros').toArray();
+        await tx.table<Registro>('entradas').bulkPut(antigos.map((r) => ({ ...r, id: crypto.randomUUID() })));
+        const comportamentos = await tx.table<Comportamento>('comportamentos').toArray();
+        await tx.table<Comportamento>('comportamentos').bulkPut(migrarImpulsosParaAlvos(comportamentos));
+      });
+    this.version(3).stores({ registros: null });
+    this.registros = this.table('entradas');
   }
 
   get tabelas() {

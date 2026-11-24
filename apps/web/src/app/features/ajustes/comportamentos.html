@@ -1,20 +1,9 @@
 <main class="cd-tela">
   <cd-cabecalho titulo="Meus comportamentos" voltarPara="/ajustes" rotuloVoltar="Voltar aos ajustes">
-    O que aparece na lista do registro do dia.
+    O que dá para escolher em cada entrada do dia.
   </cd-cabecalho>
 
   <div class="cd-conteudo cd-conteudo--com-nav">
-    <section class="secao" aria-labelledby="sec-fixos">
-      <h2 id="sec-fixos" class="cd-rotulo-secao">Impulsos do cartão · fixos</h2>
-      <ul class="cd-lista">
-        @for (c of store.impulsos(); track c.id) {
-          <li class="cd-lista__item">
-            <span class="cd-lista__titulo">{{ c.nome }}</span>
-          </li>
-        }
-      </ul>
-    </section>
-
     <section class="secao" aria-labelledby="sec-alvos">
       <h2 id="sec-alvos" class="cd-rotulo-secao">
         Comportamentos-alvo · {{ store.alvosAtivos().length }} de {{ limite }}
@@ -98,7 +87,7 @@
               Adicionar
             </button>
           </div>
-          <span class="cd-ajuda">Ele aparece no registro do dia a partir de hoje.</span>
+          <span class="cd-ajuda">Ele aparece nas entradas do dia a partir de hoje.</span>
         </form>
       } @else if (store.podeAdicionarAlvo()) {
         <button type="button" class="novo" (click)="comecarAdicao()">
@@ -106,7 +95,7 @@
           Adicionar comportamento-alvo
         </button>
       } @else {
-        <p class="cd-aviso">Você chegou ao limite de 7, como no cartão de papel. Arquive um para abrir espaço.</p>
+        <p class="cd-aviso">Você chegou ao limite de {{ limite }}. Arquive um para abrir espaço.</p>
       }
 
       <div role="status" class="status">

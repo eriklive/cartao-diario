@@ -105,7 +105,11 @@ function gradeDaSemana(semana: CartaoSemanal): Content {
       if (!c) return [0, 1, 2].map(() => ({ text: '', fillColor: fundo }));
       const destaque = c.destaque ? { fillColor: COR.destaqueFundo, color: COR.destaqueTexto, bold: true } : {};
       return [
-        { text: String(c.i), alignment: 'center', ...destaque },
+        {
+          text: c.vezes > 1 ? [String(c.i), { text: ` ×${c.vezes}`, fontSize: 6 }] : String(c.i),
+          alignment: 'center',
+          ...destaque,
+        },
         { text: c.a, alignment: 'center' },
         { text: String(c.h), alignment: 'center' },
       ];
@@ -288,7 +292,7 @@ export function criarDocumentoPdf(modelo: ModeloExportacao): TDocumentDefinition
     footer: (pagina, total) => ({
       columns: [
         {
-          text: `Gerado pelo app em ${formatarDataNumerica(modelo.hoje)} · em destaque: impulso 3 ou mais · I = intensidade (0–5), A = seguiu o impulso (S/N), H = uso de habilidades (0–7)`,
+          text: `Gerado pelo app em ${formatarDataNumerica(modelo.hoje)} · em destaque: impulso 3 ou mais · I = intensidade (0–5, a maior do dia; ×N = vezes no dia), A = seguiu o impulso (S/N), H = uso de habilidades (0–7)`,
         },
         { text: `Página ${pagina} de ${total}`, alignment: 'right', width: 'auto' },
       ],

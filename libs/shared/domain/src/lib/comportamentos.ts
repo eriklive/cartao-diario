@@ -7,9 +7,20 @@ import {
   type TipoComportamento,
 } from '@cartao/shared/models';
 
-/** Impulsos primeiro, depois alvos; dentro de cada grupo, pela ordem. */
+/** Pela ordem (itens antigos do tipo `impulso`, se ainda houver, vêm antes). */
 export function ordenarComportamentos<T extends Pick<Comportamento, 'tipo' | 'ordem'>>(lista: readonly T[]): T[] {
   return [...lista].sort((a, b) => (a.tipo === b.tipo ? a.ordem - b.ordem : a.tipo === 'impulso' ? -1 : 1));
+}
+
+/**
+ * Migração: os impulsos fixos do cartão antigo viram comportamentos-alvo
+ * comuns (renomeáveis e arquiváveis), no topo da lista. Idempotente.
+ */
+export function migrarImpulsosParaAlvos<T extends Pick<Comportamento, 'tipo' | 'ordem'>>(lista: readonly T[]): T[] {
+  if (!lista.some((c) => c.tipo === 'impulso')) return [...lista];
+  const ordenados = ordenarComportamentos(lista);
+  const novaOrdem = new Map(ordenados.map((c, i) => [c, i]));
+  return lista.map((c) => ({ ...c, tipo: 'alvo', ordem: novaOrdem.get(c) ?? c.ordem }));
 }
 
 export function vigentes(lista: readonly Comportamento[]): Comportamento[] {
@@ -17,15 +28,11 @@ export function vigentes(lista: readonly Comportamento[]): Comportamento[] {
 }
 
 export function alvosAtivos(lista: readonly Comportamento[]): Comportamento[] {
-  return ordenarComportamentos(lista.filter((c) => c.tipo === 'alvo' && !c.removidoEm && !c.arquivadoEm));
+  return ordenarComportamentos(lista.filter((c) => !c.removidoEm && !c.arquivadoEm));
 }
 
 export function alvosArquivados(lista: readonly Comportamento[]): Comportamento[] {
-  return ordenarComportamentos(lista.filter((c) => c.tipo === 'alvo' && !c.removidoEm && !!c.arquivadoEm));
-}
-
-export function impulsos(lista: readonly Comportamento[]): Comportamento[] {
-  return ordenarComportamentos(lista.filter((c) => c.tipo === 'impulso' && !c.removidoEm));
+  return ordenarComportamentos(lista.filter((c) => !c.removidoEm && !!c.arquivadoEm));
 }
 
 export function podeAdicionarAlvo(lista: readonly Comportamento[]): boolean {

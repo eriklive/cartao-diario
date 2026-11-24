@@ -56,17 +56,10 @@
       <section class="passo">
         <h1>O que você vai acompanhar?</h1>
         <div class="grupo">
-          <h2 class="cd-rotulo-secao">Impulsos do cartão · já incluídos</h2>
-          <ul class="chips">
-            @for (i of impulsos; track i.chave) {
-              <li class="chip">{{ i.nome }}</li>
-            }
-          </ul>
-        </div>
-        <div class="grupo">
           <h2 class="cd-rotulo-secao">Comportamentos-alvo · {{ alvos().length }} de {{ limite }}</h2>
           <p class="texto texto--menor">
-            Os que você e seu terapeuta combinaram acompanhar. Dá para mudar depois em Ajustes.
+            O que você e seu terapeuta combinaram acompanhar, como “vontade de me ferir”. Já deixamos algumas sugestões:
+            tire as que não servem e adicione as suas. Dá para mudar depois em Ajustes.
           </p>
           @if (alvos().length) {
             <ul class="alvos">
@@ -107,7 +100,7 @@
               <p id="erro-alvo" class="cd-erro-campo">{{ erroAlvo() }}</p>
             }
           } @else {
-            <p class="cd-aviso">Você chegou ao limite de 7, como no cartão de papel.</p>
+            <p class="cd-aviso">Você chegou ao limite de {{ limite }}.</p>
           }
         </div>
       </section>

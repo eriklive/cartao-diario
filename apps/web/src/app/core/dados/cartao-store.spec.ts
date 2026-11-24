@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import Dexie from 'dexie';
 import { signal } from '@angular/core';
 import { lerBackup } from '@cartao/shared/domain';
 import { Relogio } from '../relogio';
@@ -41,63 +42,112 @@ describe('CartaoStore', () => {
     expect(store.comportamentos()).toEqual([]);
   });
 
-  it('conclui o primeiro acesso com os 3 impulsos e os alvos, valendo para os dias que ainda dá para preencher', async () => {
+  it('conclui o primeiro acesso com os alvos escolhidos, valendo para os dias que ainda dá para preencher', async () => {
     const { store, repo } = await criarStore();
     await store.concluirOnboarding({
       nome: '  Ana ',
-      alvos: ['Gastar demais', 'gastar DEMAIS', 'Isolar-me'],
+      alvos: ['Vontade de me matar', 'Gastar demais', 'gastar DEMAIS', 'Isolar-me'],
       lembrete: { ativo: true, horario: '21:00' },
     });
 
     expect(store.configurado()).toBe(true);
     expect(store.perfil()?.nome).toBe('Ana');
-    expect(store.impulsos().map((c) => c.chave)).toEqual(['me-matar', 'me-ferir', 'usar-drogas']);
-    expect(store.alvosAtivos().map((c) => c.nome)).toEqual(['Gastar demais', 'Isolar-me']);
-    expect(store.comportamentos().every((c) => c.ativoDesde === '2026-10-12')).toBe(true);
+    expect(store.alvosAtivos().map((c) => c.nome)).toEqual(['Vontade de me matar', 'Gastar demais', 'Isolar-me']);
+    expect(store.alvosAtivos().map((c) => c.chave)).toEqual(['me-matar', undefined, undefined]);
+    expect(store.comportamentos().every((c) => c.tipo === 'alvo' && c.ativoDesde === '2026-10-12')).toBe(true);
     expect(store.primeiroDia()).toBe('2026-10-18');
 
     const gravado = await repo.lerTudo();
-    expect(gravado.comportamentos).toHaveLength(5);
+    expect(gravado.comportamentos).toHaveLength(3);
   });
 
-  it('salva respostas normalizadas, limpa com lápide e puxa o início do uso para trás', async () => {
+  it('guarda várias entradas do mesmo alvo no dia, edita, remove com lápide e puxa o início do uso para trás', async () => {
     const { store, repo } = await criarStore();
-    await store.concluirOnboarding({ nome: 'Ana', alvos: [], lembrete: { ativo: false, horario: '21:00' } });
-    const ferir = store.impulsos()[1];
+    await store.concluirOnboarding({
+      nome: 'Ana',
+      alvos: ['Vontade de me ferir'],
+      lembrete: { ativo: false, horario: '21:00' },
+    });
+    const ferir = store.alvosAtivos()[0];
 
-    await store.salvarResposta('2026-10-16', ferir.id, { ...resposta, usoHabilidade: 2 });
-    expect(store.registro('2026-10-16', ferir.id)).toMatchObject({ intensidade: 3, habilidades: [] });
+    const primeira = await store.salvarEntrada('2026-10-16', ferir.id, { ...resposta, usoHabilidade: 2 });
+    const segunda = await store.salvarEntrada('2026-10-16', ferir.id, { ...resposta, intensidade: 5 });
+    expect(primeira.id).not.toBe(segunda.id);
+    expect(store.registro(primeira.id)).toMatchObject({ intensidade: 3, habilidades: [] });
+    expect(store.indice().registrosPorData.get('2026-10-16')).toHaveLength(2);
     expect(store.primeiroDia()).toBe('2026-10-16');
 
-    await store.limparResposta('2026-10-16', ferir.id);
-    expect(store.registro('2026-10-16', ferir.id)).toBeUndefined();
-    const bruto = (await repo.lerTudo()).registros[0];
-    expect(bruto.removidoEm).toBeTruthy();
+    await store.salvarEntrada('2026-10-16', ferir.id, { ...resposta, intensidade: 1 }, primeira.id);
+    expect(store.registro(primeira.id)).toMatchObject({ intensidade: 1, criadoEm: primeira.criadoEm });
+    expect(store.indice().registrosPorData.get('2026-10-16')).toHaveLength(2);
 
-    await store.salvarResposta('2026-10-16', ferir.id, resposta);
-    expect(store.registro('2026-10-16', ferir.id)?.removidoEm).toBeUndefined();
-    expect(store.registro('2026-10-16', ferir.id)?.criadoEm).toBe(bruto.criadoEm);
+    await store.removerEntrada(primeira.id);
+    expect(store.registro(primeira.id)).toBeUndefined();
+    expect(store.indice().registrosPorData.get('2026-10-16')).toHaveLength(1);
+    const bruto = (await repo.lerTudo()).registros.find((r) => r.id === primeira.id);
+    expect(bruto?.removidoEm).toBeTruthy();
   });
 
-  it('cria alvos com resposta, respeita o limite de 7 e arquiva/restaura', async () => {
+  it('cria alvos, respeita o limite de 10 e arquiva/restaura qualquer alvo', async () => {
     const { store } = await criarStore();
-    await store.concluirOnboarding({ nome: 'Ana', alvos: [], lembrete: { ativo: false, horario: '21:00' } });
+    await store.concluirOnboarding({
+      nome: 'Ana',
+      alvos: ['Vontade de me matar'],
+      lembrete: { ativo: false, horario: '21:00' },
+    });
 
-    const alvo = await store.criarAlvo('Brigar', '2026-10-17', resposta);
+    const alvo = await store.criarAlvo('Brigar', '2026-10-17');
     expect(alvo.ativoDesde).toBe('2026-10-17');
-    expect(store.registro('2026-10-17', alvo.id)?.intensidade).toBe(3);
     await expect(store.criarAlvo('brigar', '2026-10-18')).rejects.toThrow(ErroDeValidacao);
 
-    for (let i = 0; i < 6; i++) await store.criarAlvo(`Alvo ${i}`, '2026-10-18');
+    for (let i = 0; i < 8; i++) await store.criarAlvo(`Alvo ${i}`, '2026-10-18');
     expect(store.podeAdicionarAlvo()).toBe(false);
-    await expect(store.criarAlvo('Mais um', '2026-10-18')).rejects.toThrow('limite de 7');
+    await expect(store.criarAlvo('Mais um', '2026-10-18')).rejects.toThrow('limite de 10');
 
     await store.arquivarAlvo(alvo.id);
     expect(store.alvosArquivados().map((c) => c.nome)).toEqual(['Brigar']);
     expect(store.podeAdicionarAlvo()).toBe(true);
     await store.restaurarAlvo(alvo.id);
     expect(store.comportamento(alvo.id)?.arquivadoEm).toBeUndefined();
-    await expect(store.arquivarAlvo(store.impulsos()[0].id)).rejects.toThrow(ErroDeValidacao);
+    const matar = store.alvosAtivos()[0];
+    await store.arquivarAlvo(matar.id);
+    expect(store.comportamento(matar.id)?.arquivadoEm).toBe('2026-10-18');
+  });
+
+  it('migra o banco antigo: uma resposta por item vira entrada com id e os impulsos viram alvos', async () => {
+    const nome = `teste-migracao-${++sequencia}`;
+    const T = '2026-10-18T21:00:00.000Z';
+    const idMatar = crypto.randomUUID();
+    const idAlvo = crypto.randomUUID();
+    const antigo = new Dexie(nome);
+    antigo.version(1).stores({
+      perfil: '',
+      comportamentos: 'id, tipo',
+      dias: 'data',
+      registros: '[data+comportamentoId], data, comportamentoId',
+      fechamentos: 'semanaInicio',
+    });
+    const base = { ativoDesde: '2026-10-01', criadoEm: T, atualizadoEm: T };
+    await antigo.table('comportamentos').bulkPut([
+      { ...base, id: idAlvo, tipo: 'alvo', nome: 'Gastar demais', ordem: 0 },
+      { ...base, id: idMatar, tipo: 'impulso', chave: 'me-matar', nome: 'Me matar', ordem: 0 },
+    ]);
+    await antigo.table('registros').put({
+      data: '2026-10-17',
+      comportamentoId: idMatar,
+      ...resposta,
+      criadoEm: T,
+      atualizadoEm: T,
+    });
+    antigo.close();
+
+    const dados = await new IndexedDbCartaoRepository(new BancoCartao(nome)).lerTudo();
+    expect(dados.registros).toHaveLength(1);
+    expect(dados.registros[0]).toMatchObject({ comportamentoId: idMatar, intensidade: 3 });
+    expect(dados.registros[0].id).toMatch(/^[0-9a-f-]{36}$/);
+    const porId = new Map(dados.comportamentos.map((c) => [c.id, c]));
+    expect(porId.get(idMatar)).toMatchObject({ tipo: 'alvo', chave: 'me-matar', ordem: 0 });
+    expect(porId.get(idAlvo)).toMatchObject({ tipo: 'alvo', ordem: 1 });
   });
 
   it('salva o fechamento como rascunho e depois fecha a semana', async () => {
@@ -126,7 +176,8 @@ describe('CartaoStore', () => {
       alvos: ['Brigar'],
       lembrete: { ativo: true, horario: '22:00' },
     });
-    await origem.store.salvarResposta('2026-10-18', origem.store.alvosAtivos()[0].id, resposta);
+    await origem.store.salvarEntrada('2026-10-18', origem.store.alvosAtivos()[0].id, resposta);
+    await origem.store.salvarEntrada('2026-10-18', origem.store.alvosAtivos()[0].id, resposta);
     await origem.store.concluirDia('2026-10-18');
     const backup = origem.store.montarBackup();
     await origem.store.registrarBackup(backup);
@@ -139,7 +190,7 @@ describe('CartaoStore', () => {
     expect(destino.store.configurado()).toBe(true);
     expect(destino.store.alvosAtivos().map((c) => c.nome)).toEqual(['Brigar']);
     expect(destino.store.indice().diasConcluidos.has('2026-10-18')).toBe(true);
-    expect((await destino.repo.lerTudo()).registros).toHaveLength(1);
+    expect((await destino.repo.lerTudo()).registros).toHaveLength(2);
   });
 
   it('recarrega quando outra aba grava no mesmo banco', async () => {

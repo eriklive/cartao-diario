@@ -5,7 +5,6 @@ import {
   type Dados,
   type DataLocal,
   type Fechamento,
-  type Registro,
   type TipoComportamento,
   LIMIAR_DESTAQUE,
 } from '@cartao/shared/models';
@@ -13,6 +12,7 @@ import {
   NOMES_DIAS,
   NOMES_DIAS_CURTOS,
   comportamentosDoPeriodo,
+  consolidarPorComportamento,
   diaDaSemana,
   diaPreenchido,
   diasDaSemana,
@@ -25,6 +25,7 @@ import {
   semanasDoPeriodo,
   somarDias,
   ultimoDiaPreenchido,
+  type Consolidado,
   type Frequencia,
   type Periodo,
   type UsoDeHabilidade,
@@ -54,11 +55,16 @@ export interface Coluna {
   tipo: TipoComportamento;
 }
 
-/** I · A · H de um item num dia. `null` = sem dado (dia não preenchido ou item inativo). */
+/**
+ * I · A · H de um alvo num dia, juntando as entradas (maior I, "S" se seguiu
+ * alguma vez, maior H). `null` = sem dado (dia não preenchido ou item inativo).
+ */
 export interface CelulaIah {
   i: number;
   a: 'S' | 'N';
   h: number;
+  /** Quantas entradas o alvo teve no dia. */
+  vezes: number;
   destaque: boolean;
 }
 
@@ -101,6 +107,8 @@ export interface LinhaRegistro {
   seguiu: 'S' | 'N';
   usoHabilidade: number;
   habilidades: string[];
+  /** Quantas entradas o alvo teve no dia (0 = não registrado, conta como 0). */
+  vezes: number;
   destaque: boolean;
 }
 
@@ -111,13 +119,19 @@ export interface ModeloExportacao {
   incluir: Inclusoes;
   ultimoRegistro: DataLocal | null;
   semanas: CartaoSemanal[];
-  /** Uma linha por dia preenchido × item visível naquele dia (itens sem resposta contam 0). */
+  /** Uma linha por dia preenchido × alvo visível naquele dia (alvos sem entrada contam 0). */
   linhas: LinhaRegistro[];
 }
 
-function celula(r: Registro | undefined): CelulaIah {
-  if (!r) return { i: 0, a: 'N', h: 0, destaque: false };
-  return { i: r.intensidade, a: r.seguiu ? 'S' : 'N', h: r.usoHabilidade, destaque: r.intensidade >= LIMIAR_DESTAQUE };
+function celula(r: Consolidado | undefined): CelulaIah {
+  if (!r) return { i: 0, a: 'N', h: 0, vezes: 0, destaque: false };
+  return {
+    i: r.intensidade,
+    a: r.seguiu ? 'S' : 'N',
+    h: r.usoHabilidade,
+    vezes: r.vezes,
+    destaque: r.intensidade >= LIMIAR_DESTAQUE,
+  };
 }
 
 function ativoNoDia(c: Comportamento, data: DataLocal, temResposta: boolean): boolean {
@@ -139,7 +153,7 @@ export function montarExportacao(dados: Dados, opcoes: OpcoesExportacao): Modelo
     const linhas = dias.map((data): LinhaDia => {
       const fora = !dentro(data);
       const preenchido = !fora && diaPreenchido(indice, data);
-      const doDia = new Map(registrosSemana.filter((r) => r.data === data).map((r) => [r.comportamentoId, r]));
+      const doDia = consolidarPorComportamento(registrosSemana.filter((r) => r.data === data));
       return {
         data,
         dia: NOMES_DIAS[diaDaSemana(data)],
@@ -189,7 +203,7 @@ export function montarExportacao(dados: Dados, opcoes: OpcoesExportacao): Modelo
       semana.colunas.forEach((coluna, k) => {
         const c = linha.celulas[k];
         if (!c) return;
-        const r = (indice.registrosPorData.get(linha.data) ?? []).find((x) => x.comportamentoId === coluna.id);
+        const r = consolidarPorComportamento(indice.registrosPorData.get(linha.data) ?? []).get(coluna.id);
         linhas.push({
           data: linha.data,
           dia: linha.diaCurto,
@@ -200,6 +214,7 @@ export function montarExportacao(dados: Dados, opcoes: OpcoesExportacao): Modelo
           seguiu: c.a,
           usoHabilidade: c.h,
           habilidades: r?.habilidades ?? [],
+          vezes: c.vezes,
           destaque: c.destaque,
         });
       });

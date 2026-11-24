@@ -1,4 +1,5 @@
 import { BACKUP_APP, BACKUP_SCHEMA_VERSION, BackupSchema, type Backup, type Dados } from '@cartao/shared/models';
+import { migrarImpulsosParaAlvos } from './comportamentos';
 import { normalizarResposta } from './registro';
 
 export function criarBackup(dados: Dados, agora: Date): Backup {
@@ -11,11 +12,28 @@ export function nomeArquivoBackup(data: string): string {
 
 export type LeituraBackup = { ok: true; backup: Backup } | { ok: false; erro: string };
 
-/**
- * Migrações de versões antigas do backup: cada função leva da versão `n`
- * para `n + 1`. Vazio enquanto só existe a versão 1.
- */
-const MIGRACOES: Record<number, (bruto: Record<string, unknown>) => Record<string, unknown>> = {};
+type Bruto = Record<string, unknown>;
+
+/** Migrações de versões antigas do backup: cada função leva da versão `n` para `n + 1`. */
+const MIGRACOES: Record<number, (bruto: Bruto) => Bruto> = {
+  // v2: várias entradas por dia (cada registro ganha `id`) e os impulsos fixos viram alvos.
+  1: (bruto) => {
+    const dados = bruto['dados'];
+    if (!dados || typeof dados !== 'object') return bruto;
+    const d = dados as Bruto;
+    const lista = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+    return {
+      ...bruto,
+      dados: {
+        ...d,
+        comportamentos: migrarImpulsosParaAlvos(
+          lista<{ tipo: 'impulso' | 'alvo'; ordem: number }>(d['comportamentos']),
+        ),
+        registros: lista<Bruto>(d['registros']).map((r) => ({ id: globalThis.crypto.randomUUID(), ...r })),
+      },
+    };
+  },
+};
 
 const NAO_E_BACKUP = 'Este arquivo não é um backup do Cartão Diário.';
 

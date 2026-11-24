@@ -1,7 +1,8 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import {
-  IMPULSOS_FIXOS,
+  ALVOS_SUGERIDOS,
   JANELA_EDICAO_DIAS,
+  LIMITE_ALVOS,
   type Backup,
   type Comportamento,
   type DataLocal,
@@ -16,7 +17,6 @@ import {
   alvosArquivados,
   alvosAtivos,
   criarBackup,
-  impulsos,
   indexar,
   menorData,
   normalizarResposta,
@@ -41,8 +41,6 @@ export type CamposFechamento = Pick<
   'tarefaCasa' | 'resultadoTarefa' | 'progresso' | 'entradasSessao' | 'notasTerapeuta'
 >;
 
-const chave = (data: DataLocal, comportamentoId: string) => `${data}|${comportamentoId}`;
-
 function substituirPor<T>(lista: T[], novos: T[] | undefined, id: (x: T) => string): T[] {
   if (!novos?.length) return lista;
   const porId = new Map(lista.map((x) => [id(x), x]));
@@ -54,7 +52,7 @@ function mesclar(d: Dados, m: Mudancas): Dados {
   return {
     perfil: m.perfil ?? d.perfil,
     comportamentos: substituirPor(d.comportamentos, m.comportamentos, (c) => c.id),
-    registros: substituirPor(d.registros, m.registros, (r) => chave(r.data, r.comportamentoId)),
+    registros: substituirPor(d.registros, m.registros, (r) => r.id),
     dias: substituirPor(d.dias, m.dias, (x) => x.data),
     fechamentos: substituirPor(d.fechamentos, m.fechamentos, (f) => f.semanaInicio),
   };
@@ -83,7 +81,6 @@ export class CartaoStore {
   /** Só dígitos e "+", pronto para `tel:`. */
   readonly telefoneTerapeuta = computed(() => this.perfil()?.contatoTerapeuta?.replace(/[^\d+]/g, '') || undefined);
   readonly comportamentos = computed(() => vigentes(this._dados()?.comportamentos ?? []));
-  readonly impulsos = computed(() => impulsos(this.comportamentos()));
   readonly alvosAtivos = computed(() => alvosAtivos(this.comportamentos()));
   readonly alvosArquivados = computed(() => alvosArquivados(this.comportamentos()));
   readonly podeAdicionarAlvo = computed(() => podeAdicionarAlvo(this.comportamentos()));
@@ -108,9 +105,7 @@ export class CartaoStore {
     () => this.indice().registrosPorData.size > 0 || this.indice().diasConcluidos.size > 0,
   );
 
-  private readonly registrosBrutos = computed(
-    () => new Map((this._dados()?.registros ?? []).map((r) => [chave(r.data, r.comportamentoId), r])),
-  );
+  private readonly registrosBrutos = computed(() => new Map((this._dados()?.registros ?? []).map((r) => [r.id, r])));
 
   constructor() {
     let resolver!: () => void;
@@ -139,8 +134,9 @@ export class CartaoStore {
     return this.comportamentos().find((c) => c.id === id);
   }
 
-  registro(data: DataLocal, comportamentoId: string): Registro | undefined {
-    const r = this.registrosBrutos().get(chave(data, comportamentoId));
+  /** Uma entrada pelo `id` (sem as removidas). */
+  registro(id: string): Registro | undefined {
+    const r = this.registrosBrutos().get(id);
     return r && !r.removidoEm ? r : undefined;
   }
 
@@ -156,26 +152,16 @@ export class CartaoStore {
     const ativoDesde = somarDias(this.hoje(), -JANELA_EDICAO_DIAS);
     const existentes = this.comportamentos();
     const novos: Comportamento[] = [];
-    IMPULSOS_FIXOS.forEach((imp, ordem) => {
-      if (existentes.some((c) => c.chave === imp.chave)) return;
-      novos.push({
-        id: novoId(),
-        tipo: 'impulso',
-        chave: imp.chave,
-        nome: imp.nome,
-        ordem,
-        ativoDesde,
-        criadoEm: agora,
-        atualizadoEm: agora,
-      });
-    });
     let ordem = proximaOrdem(existentes, 'alvo');
     for (const nome of entrada.alvos) {
       const erro = validarNomeComportamento(nome, [...existentes, ...novos]);
       if (erro) continue;
+      const chave = ALVOS_SUGERIDOS.find((s) => s.nome === nome.trim())?.chave;
+      if (chave && [...existentes, ...novos].some((c) => c.chave === chave)) continue;
       novos.push({
         id: novoId(),
         tipo: 'alvo',
+        ...(chave ? { chave } : {}),
         nome: nome.trim(),
         ordem: ordem++,
         ativoDesde,
@@ -193,22 +179,45 @@ export class CartaoStore {
     await this.salvar({ perfil, comportamentos: novos });
   }
 
-  async salvarResposta(data: DataLocal, comportamentoId: string, resposta: RespostaRegistro): Promise<void> {
-    await this.salvar({ registros: [this.montarRegistro(data, comportamentoId, resposta)] });
+  /**
+   * Grava uma entrada do dia. Sem `id`: entrada nova (o mesmo alvo pode ter
+   * várias no dia). Com `id`: edita a entrada existente.
+   */
+  async salvarEntrada(
+    data: DataLocal,
+    comportamentoId: string,
+    resposta: RespostaRegistro,
+    id?: string,
+  ): Promise<Registro> {
+    this.exigirComportamento(comportamentoId);
+    const agora = this.relogio.instante();
+    const existente = id ? this.registrosBrutos().get(id) : undefined;
+    const registro: Registro = {
+      id: existente?.id ?? novoId(),
+      data,
+      comportamentoId,
+      ...normalizarResposta(resposta),
+      criadoEm: existente?.criadoEm ?? agora,
+      atualizadoEm: agora,
+    };
+    await this.salvar({ registros: [registro] });
+    return registro;
   }
 
-  /** Desmarcar ou limpar: o item volta a contar como 0 naquele dia. */
-  async limparResposta(data: DataLocal, comportamentoId: string): Promise<void> {
-    const existente = this.registrosBrutos().get(chave(data, comportamentoId));
+  /** Remove uma entrada do dia. */
+  async removerEntrada(id: string): Promise<void> {
+    const existente = this.registrosBrutos().get(id);
     if (!existente || existente.removidoEm) return;
     const agora = this.relogio.instante();
     await this.salvar({ registros: [{ ...existente, removidoEm: agora, atualizadoEm: agora }] });
   }
 
-  /** Cria um comportamento-alvo que aparece a partir de `ativoDesde`, opcionalmente já com a resposta do dia. */
-  async criarAlvo(nome: string, ativoDesde: DataLocal, resposta?: RespostaRegistro): Promise<Comportamento> {
+  /** Cria um comportamento-alvo que aparece a partir de `ativoDesde`. */
+  async criarAlvo(nome: string, ativoDesde: DataLocal): Promise<Comportamento> {
     if (!this.podeAdicionarAlvo()) {
-      throw new ErroDeValidacao('Você chegou ao limite de 7 comportamentos-alvo. Arquive um para abrir espaço.');
+      throw new ErroDeValidacao(
+        `Você chegou ao limite de ${LIMITE_ALVOS} comportamentos-alvo. Arquive um para abrir espaço.`,
+      );
     }
     const erro = validarNomeComportamento(nome, this.comportamentos());
     if (erro) throw new ErroDeValidacao(erro);
@@ -222,8 +231,7 @@ export class CartaoStore {
       criadoEm: agora,
       atualizadoEm: agora,
     };
-    const registros = resposta ? [this.montarRegistro(ativoDesde, alvo.id, resposta)] : [];
-    await this.salvar({ comportamentos: [alvo], registros });
+    await this.salvar({ comportamentos: [alvo] });
     return alvo;
   }
 
@@ -236,7 +244,6 @@ export class CartaoStore {
 
   async arquivarAlvo(id: string): Promise<void> {
     const atual = this.exigirComportamento(id);
-    if (atual.tipo !== 'alvo') throw new ErroDeValidacao('Os impulsos do cartão não podem ser arquivados.');
     await this.salvar({
       comportamentos: [{ ...atual, arquivadoEm: this.hoje(), atualizadoEm: this.relogio.instante() }],
     });
@@ -245,7 +252,9 @@ export class CartaoStore {
   async restaurarAlvo(id: string): Promise<void> {
     const atual = this.exigirComportamento(id);
     if (!this.podeAdicionarAlvo()) {
-      throw new ErroDeValidacao('Você já tem 7 comportamentos-alvo ativos. Arquive um antes de restaurar.');
+      throw new ErroDeValidacao(
+        `Você já tem ${LIMITE_ALVOS} comportamentos-alvo ativos. Arquive um antes de restaurar.`,
+      );
     }
     const { arquivadoEm: _, ...restaurado } = atual;
     await this.salvar({ comportamentos: [{ ...restaurado, atualizadoEm: this.relogio.instante() }] });
@@ -313,18 +322,6 @@ export class CartaoStore {
   private async salvar(mudancas: Mudancas): Promise<void> {
     await this.repo.salvar(mudancas);
     this._dados.update((d) => (d ? mesclar(d, mudancas) : d));
-  }
-
-  private montarRegistro(data: DataLocal, comportamentoId: string, resposta: RespostaRegistro): Registro {
-    const agora = this.relogio.instante();
-    const existente = this.registrosBrutos().get(chave(data, comportamentoId));
-    return {
-      data,
-      comportamentoId,
-      ...normalizarResposta(resposta),
-      criadoEm: existente?.criadoEm ?? agora,
-      atualizadoEm: agora,
-    };
   }
 
   private exigirComportamento(id: string): Comportamento {
