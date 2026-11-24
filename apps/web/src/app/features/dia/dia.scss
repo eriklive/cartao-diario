@@ -91,6 +91,10 @@
   border-color: var(--cd-borda);
 }
 
+.linha--inativa {
+  opacity: 0.6;
+}
+
 .marca {
   width: 44px;
   height: 44px;

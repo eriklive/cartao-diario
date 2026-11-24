@@ -27,7 +27,9 @@
       </div>
     </div>
     <h1>{{ titulo() }}</h1>
-    <p class="cd-subtitulo">Marque o que aconteceu e responda os detalhes. O que ficar desmarcado conta como 0.</p>
+    <p class="cd-subtitulo">
+      Marque o que aconteceu e responda os detalhes. Se nada disso aconteceu, escolha essa opção no fim da lista.
+    </p>
     @if (ehPassado()) {
       <p class="cd-aviso cd-aviso--alerta passado">Você está editando um dia anterior. Dá para voltar até 6 dias.</p>
     }
@@ -88,6 +90,41 @@
         }
       </section>
     }
+
+    <section class="grupo" aria-label="Nenhum item">
+      <ul>
+        <li class="linha" [class.linha--marcada]="nadaAconteceu()" [class.linha--inativa]="marcados() > 0">
+          <button
+            type="button"
+            class="marca"
+            [attr.aria-pressed]="nadaAconteceu()"
+            [disabled]="marcados() > 0"
+            aria-describedby="nada-resumo"
+            (click)="alternarNada()"
+          >
+            <span class="marca__circulo">
+              @if (nadaAconteceu()) {
+                <cd-icone nome="check" [tamanho]="16" [espessura]="3" />
+              }
+            </span>
+            <span class="cd-visualmente-oculto">Nada disso aconteceu</span>
+          </button>
+          <button
+            type="button"
+            class="textos"
+            aria-hidden="true"
+            [disabled]="marcados() > 0"
+            tabindex="-1"
+            (click)="alternarNada()"
+          >
+            <span class="nome">Nada disso aconteceu</span>
+            <span class="resumo" id="nada-resumo">{{
+              marcados() > 0 ? 'Você já marcou um item' : 'Tudo conta como 0 neste dia'
+            }}</span>
+          </button>
+        </li>
+      </ul>
+    </section>
   </div>
 
   <div class="cd-rodape">
@@ -96,7 +133,12 @@
         <span class="contagem__total">{{ marcados() }} {{ marcados() === 1 ? 'marcado' : 'marcados' }}</span>
         <span class="cd-ajuda">Salvo automaticamente</span>
       </div>
-      <button type="button" class="cd-botao cd-botao--primario" [disabled]="concluindo()" (click)="concluir()">
+      <button
+        type="button"
+        class="cd-botao cd-botao--primario"
+        [disabled]="concluindo() || !podeConcluir()"
+        (click)="concluir()"
+      >
         Concluir
       </button>
     </div>

@@ -12,7 +12,7 @@ Desenho de referência: canvas "Cartão Diário — caminhos e layouts". Plano: 
 | ------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | Primeiro acesso     | `/boas-vindas`                           | Nome, comportamentos-alvo (até 7), lembrete; ou restaurar um backup                                             |
 | Hoje                | `/hoje`                                  | Faixa da semana, registro de hoje, atalho para o fechamento, lembrete de backup, convite para instalar, CVV 188 |
-| Registro do dia     | `/dia/:data`                             | Lista do dia (hoje e até 6 dias atrás), marcar/desmarcar, novo alvo, Concluir                                   |
+| Registro do dia     | `/dia/:data`                             | Lista do dia (hoje e até 6 dias atrás), marcar/desmarcar, "Nada disso aconteceu", novo alvo, Concluir           |
 | Formulário          | `/dia/:data/item/:id`, `/dia/:data/novo` | Intensidade 0–5, seguiu?, uso de habilidades 0–7, habilidades por módulo, apoio em destaque                     |
 | Fechamento semanal  | `/semana`, `/semana/:inicio`             | Tarefa, resultado, progresso −3..+3, entradas em sessão, notas; salva sozinho                                   |
 | Semanas             | `/semana/anteriores`                     | Semanas fechadas e em aberto                                                                                    |
@@ -104,6 +104,6 @@ Qualquer hospedagem estática com HTTPS serve. Publique `dist/apps/web/browser` 
 
 - **Lembrete diário:** sem servidor, o navegador não dispara notificação num horário. O app gera um evento de calendário diário (`.ics`) para a pessoa adicionar ao celular. Notificação de verdade (Web Push) depende do backend.
 - **Perda de dados:** tudo fica no aparelho. Para mitigar, o app pede armazenamento persistente, convida a instalar (no Safari, sites não instalados podem perder dados depois de 7 dias sem uso), oferece backup em JSON e lembra de fazê-lo depois de 14 dias.
-- **Dia preenchido:** conta quando a pessoa toca "Concluir" ou responde ao menos um item. Dias antes do primeiro uso não contam como falta.
+- **Dia preenchido:** conta quando a pessoa toca "Concluir" ou responde ao menos um item. "Concluir" só habilita depois de marcar um item ou escolher "Nada disso aconteceu". Dias antes do primeiro uso não contam como falta.
 - **Exportação:** PDF e XLSX são gerados no aparelho. As bibliotecas (cerca de 2 MB) ficam fora do carregamento inicial, mas o service worker as guarda para uso offline.
 - **Ainda não feito:** bloqueio por PIN/biometria, gráficos, grade da semana somente leitura, tema escuro e backend (sincronização, contas, envio ao terapeuta).

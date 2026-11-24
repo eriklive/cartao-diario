@@ -80,9 +80,18 @@ test('dá para voltar até 6 dias, não para o futuro, e Concluir conta o dia', 
   await page.goto('./dia/2026-10-19');
   await expect(page).toHaveURL(/\/dia\/2026-10-18$/);
 
-  // Dia sem nada marcado também conta, se a pessoa concluir.
+  // Concluir só habilita depois de marcar algo ou escolher "Nada disso aconteceu".
   await page.goto('./dia/2026-10-17');
-  await page.getByRole('button', { name: 'Concluir' }).click();
+  const concluir = page.getByRole('button', { name: 'Concluir' });
+  await expect(concluir).toBeDisabled();
+  const nada = page.getByRole('button', { name: 'Nada disso aconteceu' });
+  await nada.click();
+  await expect(nada).toHaveAttribute('aria-pressed', 'true');
+  await expect(concluir).toBeEnabled();
+  await nada.click();
+  await expect(concluir).toBeDisabled();
+  await nada.click();
+  await concluir.click();
   await expect(page.getByText('Sábado, 17 out registrado.')).toBeVisible();
   await expect(page.getByText('1 de 1 dia preenchido')).toBeVisible();
   await expect(page.getByRole('link', { name: /Sábado, 17 out: preenchido/ })).toBeVisible();

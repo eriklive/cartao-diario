@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import type { Comportamento } from '@cartao/shared/models';
 import {
@@ -71,6 +71,16 @@ export class DiaPagina {
   });
   protected readonly marcados = computed(() => this.registros().size);
 
+  /**
+   * "Nada disso aconteceu": escolha explícita de que nada foi marcado. Começa
+   * escolhida se o dia já foi concluído sem nenhum item; volta ao trocar de dia.
+   */
+  protected readonly nadaAconteceu = linkedSignal(
+    () => this.store.indice().diasConcluidos.has(this.data()) && this.marcados() === 0,
+  );
+  /** Só dá para concluir depois de marcar algo ou escolher "Nada disso aconteceu". */
+  protected readonly podeConcluir = computed(() => this.marcados() > 0 || this.nadaAconteceu());
+
   protected readonly desmarcando = signal<Comportamento | null>(null);
   protected readonly concluindo = signal(false);
 
@@ -80,6 +90,11 @@ export class DiaPagina {
 
   abrir(c: Comportamento): void {
     void this.router.navigate(['/dia', this.data(), 'item', c.id]);
+  }
+
+  alternarNada(): void {
+    if (this.marcados() > 0) return;
+    this.nadaAconteceu.update((v) => !v);
   }
 
   alternar(linha: Linha): void {
@@ -99,7 +114,7 @@ export class DiaPagina {
   }
 
   async concluir(): Promise<void> {
-    if (this.concluindo()) return;
+    if (this.concluindo() || !this.podeConcluir()) return;
     this.concluindo.set(true);
     try {
       await this.store.concluirDia(this.data());
